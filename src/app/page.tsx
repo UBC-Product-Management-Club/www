@@ -8,6 +8,7 @@ import Advisors from "@/components/Advisors";
 import GetInvolved from "@/components/GetInvolved";
 import Nav from "@/components/Nav";
 import Seam from "@/components/Seam";
+import PageSky from "@/components/PageSky";
 import { Footer } from "@/components/Chrome";
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
       <a className="skip" href="#main">
         Skip to content
       </a>
+      <PageSky />
       <Nav />
       <Hero />
       <main id="main">

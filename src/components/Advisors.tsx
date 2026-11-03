@@ -42,7 +42,7 @@ function Card({ a, k }: { a: Advisor; k: number }) {
 
 export default function Advisors() {
   return (
-    <section className="boa" id="advisors" aria-labelledby="boa-h">
+    <section className="boa" id="advisors" aria-labelledby="boa-h" data-sky="dark">
       <div className="wrap">
         <div className="boa-head">
           <h2 id="boa-h">Board of Advisors</h2>

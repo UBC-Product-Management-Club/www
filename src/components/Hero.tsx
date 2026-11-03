@@ -339,7 +339,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="hero" id="top" ref={sectionRef}>
+    <section className="hero" id="top" ref={sectionRef} data-sky="light">
       <div className="hero-stage">
         <div className="wash" aria-hidden="true">
           <i />

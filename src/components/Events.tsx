@@ -138,7 +138,7 @@ function Snap({ ev, board }: { ev: EventSticker; board: boolean }) {
 export default function Events() {
   const board = useMedia("(min-width: 1000px) and (pointer: fine)");
   return (
-    <section className="events" id="events" aria-labelledby="events-h">
+    <section className="events" id="events" aria-labelledby="events-h" data-sky="dark" data-sky-at="end">
       <div className={`events-board${board ? " is-board" : ""}`}>
         <div className="events-title">
           <h2 id="events-h">Events</h2>

@@ -7,7 +7,7 @@ const GEAR_D = gearPath(500, 500, 490);
 /** Three offerings side by side over a slow brand-light field; the cards rise in one after another as they scroll in. */
 export default function Offer() {
   return (
-    <section className="offer" id="offer" aria-labelledby="offer-h">
+    <section className="offer" id="offer" aria-labelledby="offer-h" data-sky="light">
       <div className="offer-field" aria-hidden="true">
         <i />
         <i />

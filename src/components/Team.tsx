@@ -256,7 +256,7 @@ export default function Team() {
   const people = SETS[set];
 
   return (
-    <section className="team" id="team" aria-labelledby="team-h" onFocus={pause} onBlur={resume}>
+    <section className="team" id="team" aria-labelledby="team-h" data-sky="dark" onFocus={pause} onBlur={resume}>
       <div className="team-glow" aria-hidden="true">
         <i />
         <i />

@@ -96,7 +96,15 @@ export default function About() {
   const n = parseInt(stat.n, 10) / tab.per;
 
   return (
-    <section className={`about${scrolly ? " is-scrolly" : ""}`} id="about" ref={sectionRef} aria-labelledby="about-h">
+    <section
+      className={`about${scrolly ? " is-scrolly" : ""}`}
+      id="about"
+      ref={sectionRef}
+      aria-labelledby="about-h"
+      data-sky="light"
+      // pinned, the gear's ink covers the change from dark, so it happens under it
+      data-sky-at={scrolly ? "start" : undefined}
+    >
       <div className="about-stage">
         <div className="about-gear-col">
           <div className="about-gear" ref={gearRef} aria-hidden="true">

@@ -94,6 +94,14 @@ main,
 .footer {
   overflow-x: clip;
 }
+/* one background for the whole page (see PageSky): sections are transparent and only add glows */
+.sky {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--bg);
+}
 .skip {
   position: absolute;
   left: 12px;
@@ -505,7 +513,8 @@ main,
   pointer-events: none;
   opacity: 0;
   clip-path: circle(0 at 50% 50%);
-  background: radial-gradient(60% 50% at 50% 55%, #2a2260 0%, var(--ink) 60%, var(--ink-2) 100%);
+  /* the same ink and glow the events wall sits on, so the dive lands on the page below with no edge */
+  background: radial-gradient(70% 55% at 50% 50%, rgba(52, 40, 120, 0.85) 0%, rgba(52, 40, 120, 0) 70%), var(--ink);
 }
 @media (max-width: 899px) {
   .hero-copy {
@@ -528,7 +537,7 @@ main,
 /* ───────────── events: the sticker wall ───────────── */
 .events {
   position: relative;
-  background: radial-gradient(70% 60% at 50% 45%, #2a2260 0%, var(--ink) 55%, var(--ink-2) 100%);
+  background: radial-gradient(70% 55% at 50% 50%, rgba(52, 40, 120, 0.85) 0%, rgba(52, 40, 120, 0) 70%);
   color: var(--on-ink);
   overflow: clip; /* hidden would still let focus or drags scroll the wall sideways */
 }
@@ -773,7 +782,6 @@ main,
 /* ───────────── about: zoom out of the gear, it turns to show the numbers in a Mac window ───────────── */
 .about {
   position: relative;
-  background: var(--bg);
 }
 .about-stage {
   --G: min(62vh, 38vw);
@@ -1067,12 +1075,10 @@ main,
   overflow: clip;
   color: var(--on-ink);
   padding-block: clamp(220px, 22vw, 300px) clamp(56px, 7vw, 90px);
-  /* light into dark through the brand lavender, eased, so it reads as dusk rather than a grey band */
-  background: linear-gradient(var(--bg) 0, #ece4fa 50px, #b9a3e6 120px, #6a4fae 190px, #33285f 250px, var(--ink) 300px);
 }
 .team-glow {
   position: absolute;
-  inset: 300px 0 0;
+  inset: 200px 0 0;
   z-index: -1;
   pointer-events: none;
 }
@@ -1564,25 +1570,19 @@ main,
   overflow: clip;
   isolation: isolate;
   padding-block: clamp(170px, 15vw, 220px) clamp(120px, 12vw, 170px);
-  background: linear-gradient(135deg, #5f6fdc 0%, #8a58cf 36%, #bf418c 72%, #d23350 100%);
   color: #fff;
+}
+.join::before,
+.join-glow {
+  -webkit-mask: linear-gradient(transparent, #000 260px, #000 calc(100% - 240px), transparent);
+  mask: linear-gradient(transparent, #000 260px, #000 calc(100% - 240px), transparent);
 }
 .join::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  height: 240px;
+  inset: 0;
   z-index: -1;
-  background: linear-gradient(var(--ink), rgba(29, 24, 56, 0));
-  pointer-events: none;
-}
-.join::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 200px;
-  z-index: -1;
-  background: linear-gradient(rgba(29, 24, 56, 0), var(--ink));
+  background: linear-gradient(135deg, #5f6fdc 0%, #8a58cf 36%, #bf418c 72%, #d23350 100%);
   pointer-events: none;
 }
 .join-glow {
@@ -1881,7 +1881,6 @@ main,
 
 /* ───────────── footer ───────────── */
 .footer {
-  background: var(--ink);
   color: var(--on-ink-mute);
   padding: 72px 0 32px;
   font-size: 0.92rem;
@@ -1981,24 +1980,10 @@ main,
 /* ───────────── up next: the event that's coming ───────────── */
 .upcoming {
   position: relative;
-  background: linear-gradient(180deg, var(--ink-2) 0%, #241a4f 55%, var(--ink-2) 100%);
+  background: radial-gradient(60% 60% at 30% 50%, rgba(52, 40, 120, 0.6) 0%, rgba(52, 40, 120, 0) 70%);
   color: var(--on-ink);
   padding-block: clamp(72px, 9vw, 120px);
   overflow: clip;
-}
-/* where the about gear doesn't pin and zoom out of the dark, the dark fades into the page instead */
-@media (max-width: 959px), (max-height: 639px), (prefers-reduced-motion: reduce) {
-  .upcoming {
-    padding-bottom: clamp(140px, 18vw, 200px);
-  }
-  .upcoming::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: clamp(120px, 16vw, 180px);
-    background: linear-gradient(rgba(251, 249, 254, 0), var(--bg));
-    pointer-events: none;
-  }
 }
 .up-grid {
   display: grid;
@@ -2371,7 +2356,7 @@ main,
 .boa {
   position: relative;
   padding-block: clamp(80px, 10vw, 130px);
-  background: radial-gradient(60% 50% at 50% 60%, #2a2260 0%, rgba(42, 34, 96, 0) 70%), var(--ink);
+  background: radial-gradient(60% 50% at 50% 60%, rgba(52, 40, 120, 0.7) 0%, rgba(52, 40, 120, 0) 70%);
   color: var(--on-ink);
   overflow: clip;
 }

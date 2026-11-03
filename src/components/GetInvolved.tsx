@@ -61,7 +61,7 @@ function Keyboard() {
 
 export default function GetInvolved() {
   return (
-    <section className="join" id="join" aria-labelledby="join-h">
+    <section className="join" id="join" aria-labelledby="join-h" data-sky="dark">
       <div className="join-glow" aria-hidden="true">
         <i />
         <i />
