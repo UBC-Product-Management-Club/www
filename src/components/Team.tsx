@@ -2,15 +2,22 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
-import { PHOTOS, TEAM, type Member } from "@/data/site";
+import { PHOTOS, TEAM, TEAMS, type Member } from "@/data/site";
 import { gearPath } from "@/lib/gear";
 import { useMedia } from "@/lib/motion";
 import { Arrow, ArrowLeft, Pause, Play } from "./icons";
+import { asset } from "@/lib/asset";
 
-/** Each set of three shows for HOLD ms, then cross-fades over 2 × FADE ms. */
+/** Each set shows for HOLD ms, then cross-fades over 2 × FADE ms. */
 const HOLD = 3000;
-const FADE = 500;
-const SETS: Member[][] = Array.from({ length: Math.ceil(TEAM.length / 3) }, (_, i) => TEAM.slice(i * 3, i * 3 + 3));
+const FADE = 180;
+/** Up to three people per set, and a set never mixes teams: each team gets its own run of sets. */
+const SETS: Member[][] = TEAMS.flatMap((t) => {
+  const team = TEAM.filter((m) => m.group === t);
+  return Array.from({ length: Math.ceil(team.length / 3) }, (_, i) => team.slice(i * 3, i * 3 + 3));
+});
+/** Where each team's first set is, for the team buttons. */
+const FIRST: Record<string, number> = Object.fromEntries(TEAMS.map((t) => [t, SETS.findIndex((s) => s[0].group === t)]));
 /** The three strands off the ring: fan angle (deg), depth (px) and chain links. The middle one hangs in front, the outer two longer and wider. */
 const STRANDS = [
   { angle: 40, z: -46, links: 12 },
@@ -24,7 +31,6 @@ const TWIST = 38;
 const CHARM = gearPath(100, 100, 96);
 const initials = (n: string) => n.split(/[\s-]+/).map((w) => w[0]).join("").slice(0, 2);
 const first = (n: string) => n.split(" ")[0];
-const tiersOf = (set: Member[]) => [...new Set(set.map((m) => m.tier))].join(" · ");
 
 function Badge({ m }: { m: Member }) {
   return m.emoji ? (
@@ -62,6 +68,7 @@ export default function Team() {
   const [set, setSet] = useState(0);
   const [out, setOut] = useState(false);
   const [chosen, setPlaying] = useState(true);
+  const [all, setAll] = useState(false);
   // no autoplay for reduced motion; the arrows and the indicator still change sets
   const reduced = useMedia("(prefers-reduced-motion: reduce)", true);
   const playing = chosen && !reduced;
@@ -254,12 +261,19 @@ export default function Team() {
   };
 
   const people = SETS[set];
+  // the team's VP hangs on the middle strand; one person hangs there alone, two otherwise take the outer strands
+  const vp = people.find((m) => m.role.startsWith("VP"));
+  const rest = people.filter((m) => m !== vp);
+  const slots =
+    people.length === 1 ? [null, people[0], null]
+    : vp ? [rest[0] ?? null, vp, rest[1] ?? null]
+    : people.length === 2 ? [people[0], null, people[1]]
+    : [people[1], people[0], people[2]];
 
   return (
-    <section className="team" id="team" aria-labelledby="team-h" data-sky="dark" onFocus={pause} onBlur={resume}>
-      <div className="team-glow" aria-hidden="true">
-        <i />
-        <i />
+    <section className="team" id="team" aria-labelledby="team-h" onFocus={pause} onBlur={resume}>
+      <div className="team-props" aria-hidden="true">
+        <img src={asset("/gears/orchid-9.webp")} alt="" />
       </div>
       <div className="wrap team-grid">
         <div className="team-copy">
@@ -267,10 +281,26 @@ export default function Team() {
           <p className="lede">The people behind UBC PMC, 2026/27.</p>
 
           <div className="kc-nav" onPointerEnter={pause} onPointerLeave={resume}>
+            <div className="kc-teams" role="group" aria-label="Jump to a team">
+              {TEAMS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={people[0].group === t}
+                  onClick={() => go(FIRST[t])}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
             <p className="kc-now">
-              <b>{tiersOf(people)}</b>
+              <b>{people[0].group}</b>
               <span>
-                {set * 3 + 1}–{set * 3 + people.length} of {TEAM.length}
+                {(() => {
+                  const team = TEAM.filter((m) => m.group === people[0].group);
+                  const at = team.indexOf(people[0]);
+                  return team.length > people.length ? `${at + 1}–${at + people.length} of ${team.length}` : `${team.length} ${team.length === 1 ? "person" : "people"}`;
+                })()}
               </span>
             </p>
             <div className="kc-dots" ref={dotsRef} {...swipeHandlers}>
@@ -278,7 +308,7 @@ export default function Team() {
                 <button
                   key={k}
                   type="button"
-                  className={k === set ? "on" : k < set ? "done" : ""}
+                  className={`${k === set ? "on" : k < set ? "done" : ""}${k && g[0].group !== SETS[k - 1][0].group ? " new-team" : ""}`}
                   aria-label={`Show ${g.map((m) => first(m.name)).join(", ")}`}
                   aria-current={k === set ? "true" : undefined}
                   onClick={() => go(k)}
@@ -288,7 +318,7 @@ export default function Team() {
               ))}
             </div>
             <div className="kc-controls">
-              <button type="button" className="icon-btn glass" aria-label="Previous three" onClick={() => go(set - 1)}>
+              <button type="button" className="icon-btn glass" aria-label="Previous" onClick={() => go(set - 1)}>
                 <ArrowLeft />
               </button>
               <button
@@ -299,7 +329,7 @@ export default function Team() {
               >
                 {playing ? <Pause /> : <Play />}
               </button>
-              <button type="button" className="icon-btn glass" aria-label="Next three" onClick={() => go(set + 1)}>
+              <button type="button" className="icon-btn glass" aria-label="Next" onClick={() => go(set + 1)}>
                 <Arrow />
               </button>
             </div>
@@ -333,14 +363,14 @@ export default function Team() {
                 <circle cx="100" cy="100" r="30" />
               </svg>
               {STRANDS.map((st, i) => (
-                <div key={i} className="kc-strand" hidden={!people[i]}>
+                <div key={i} className="kc-strand" hidden={!slots[i]}>
                   <div className="kc-chain" aria-hidden="true">
                     {Array.from({ length: st.links }, (_, j) => (
                       <i key={j} className={j % 2 ? "side" : ""} />
                     ))}
                   </div>
                   <div className="kc-hang" style={{ top: st.links * LINK }}>
-                    {people[i] && <Card key={people[i].name} m={people[i]} />}
+                    {slots[i] && <Card key={slots[i].name} m={slots[i]} />}
                   </div>
                 </div>
               ))}
@@ -352,20 +382,24 @@ export default function Team() {
         </div>
       </div>
 
-      <details className="wrap team-all">
-        <summary>See the whole team ({TEAM.length})</summary>
-        <ul>
-          {TEAM.map((m) => (
-            <li key={m.name}>
-              <span className="ta-photo">{m.photo ? <img src={m.photo} alt="" loading="lazy" /> : initials(m.name)}</span>
-              <span>
-                <b>{m.name}</b>
-                <small>{m.role}</small>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </details>
+      <div className={`wrap team-all${all ? " open" : ""}`}>
+        <button type="button" className="team-all-btn" aria-expanded={all} aria-controls="team-all-list" onClick={() => setAll((o) => !o)}>
+          {all ? "Close" : `See the whole team (${TEAM.length})`}
+        </button>
+        <div className="team-all-fold" id="team-all-list" inert={!all}>
+          <ul>
+            {TEAM.map((m) => (
+              <li key={m.name}>
+                <span className="ta-photo">{m.photo ? <img src={m.photo} alt="" loading="lazy" /> : initials(m.name)}</span>
+                <span>
+                  <b>{m.name}</b>
+                  <small>{m.role}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </section>
   );
 }

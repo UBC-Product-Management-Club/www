@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { LINKS } from "@/data/site";
 import { Discord, Instagram, LinkedIn } from "./icons";
+import { asset } from "@/lib/asset";
 
 const SOCIAL = [
   { href: LINKS.instagram, label: "Instagram", Icon: Instagram },
@@ -10,12 +11,12 @@ const SOCIAL = [
 
 export function Footer() {
   return (
-    <footer className="footer" data-sky="dark">
+    <footer className="footer board board-end">
       <div className="wrap">
         <div className="fg">
           <div>
             <a className="logo" href="#top">
-              <img src="/brand/pmc-logo-96.png" alt="" width="34" height="30" />
+              <img src={asset("/brand/pmc-logo-96.png")} alt="" width="34" height="30" />
               UBC PMC
             </a>
             <p className="foot-line">Canada’s largest product management club, at the University of British Columbia.</p>

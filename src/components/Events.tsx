@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { EVENTS, type EventSticker } from "@/data/site";
 import { StickerArt, STICKER_SIZE } from "./StickerArt";
 import { useMedia } from "@/lib/motion";
+import { asset } from "@/lib/asset";
 
 /** Resting spots on the board (desktop): left %, top %, tilt deg. Three above the title, three below. */
 const SPOTS: Record<EventSticker["id"], [number, number, number]> = {
@@ -90,8 +91,9 @@ function Snap({ ev, board }: { ev: EventSticker; board: boolean }) {
           {ev.poster ? (
             <img src={ev.poster} alt="" loading="lazy" decoding="async" draggable={false} />
           ) : (
-            <span className="snap-developing">
-              <span>{ev.href ? "Photos after the event" : "Photos soon"}</span>
+            <span className="snap-peek">
+              <img src={asset("/scenery/geary-idea.webp")} alt="" loading="lazy" draggable={false} />
+              <span>Coming soon</span>
             </span>
           )}
         </span>
@@ -138,7 +140,7 @@ function Snap({ ev, board }: { ev: EventSticker; board: boolean }) {
 export default function Events() {
   const board = useMedia("(min-width: 1000px) and (pointer: fine)");
   return (
-    <section className="events" id="events" aria-labelledby="events-h" data-sky="dark" data-sky-at="end">
+    <section className="events" id="events" aria-labelledby="events-h">
       <div className={`events-board${board ? " is-board" : ""}`}>
         <div className="events-title">
           <h2 id="events-h">Events</h2>

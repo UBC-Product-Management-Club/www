@@ -1,3 +1,5 @@
+import { asset } from "@/lib/asset";
+
 export const LINKS = {
   member: "https://portal.ubcpmc.com/",
   volunteer: "https://forms.gle/R5Utwtev718pUACw6",
@@ -17,14 +19,14 @@ export type EventSticker = {
   when: string;
   blurb: string;
   href?: string;
-  /** Poster for the event's polaroid; an event without one shows a polaroid still developing. */
+  /** Poster for the event's polaroid; an event without one has Geary peeking into the frame. */
   poster?: string;
 };
 
 /** Each event lives in its own repo; stickers only link out. */
 export const EVENTS: EventSticker[] = [
   { id: "getaway", name: "Product Getaway", when: "Coming soon", blurb: "Details soon" },
-  { id: "jackpot", name: "Product Jackpot", when: "Nov 21–22", blurb: "24-hour product challenge", href: "https://ubcpmc.com/productjackpot" },
+  { id: "jackpot", name: "Product Jackpot", when: "Nov 21–22", blurb: "24-hour product challenge", href: "https://ubcpmc.com/productjackpot", poster: asset("/events/jackpot.webp") },
   { id: "night", name: "Product Night", when: "October", blurb: "Keynotes, small-group chats and mentors", href: "https://ubcpmc.com/productnight", poster: img("gIrG8JM7zAiFYqI98Pbu588PXU.jpg", 640) },
   { id: "heist", name: "Product Heist", when: "November", blurb: "A 24-hour product challenge", href: "https://ubcpmc.com/productheist", poster: img("B0rBpxxJg0VYM53n9iPYj0JrLEc.jpg", 640) },
   { id: "conference", name: "Product Conference", when: "February", blurb: "Keynotes, workshops and panels", href: "https://ubcpmc.com/productconference", poster: img("YOTBvfm9wMwuyEbB9JVEWFAMHQ.png", 640) },
@@ -77,14 +79,13 @@ export const STATS = [
 
 export type TeamGroup = "Co-Presidents" | "Events" | "Partnerships" | "Marketing" | "Community" | "Finance" | "Tech" | "Advisors";
 
-export type Tier = "Co-Presidents" | "VPs" | "Directors" | "Team" | "Advisors";
-const TIERS: Tier[] = ["Co-Presidents", "VPs", "Directors", "Team", "Advisors"];
+/** The teams, in the roster's order; each shows as its own set of polaroids. */
+export const TEAMS: TeamGroup[] = ["Co-Presidents", "Community", "Events", "Finance", "Marketing", "Tech", "Partnerships", "Advisors"];
 
 export type Member = {
   name: string;
   role: string;
   group: TeamGroup;
-  tier: Tier;
   /** Square headshot in public/team, or null for initials. */
   photo: string | null;
   url: string | null;
@@ -96,61 +97,58 @@ const m = (name: string, role: string, group: TeamGroup, photo: boolean, url: st
   name,
   role,
   group,
-  tier:
-    group === "Advisors" ? "Advisors"
-    : group === "Co-Presidents" ? "Co-Presidents"
-    : role.startsWith("VP") ? "VPs"
-    : role.includes("Director") ? "Directors"
-    : "Team",
-  photo: photo ? `/team/${name.toLowerCase().replace(/[^a-z]+/g, "-")}.webp` : null,
+  photo: photo ? asset(`/team/${name.toLowerCase().replace(/[^a-z]+/g, "-")}.webp`) : null,
   url,
   emoji,
 });
 
 /**
- * The 2026/27 team, from the club's "PMC 26 27" roster. Photos come from that roster, or last year's site
- * where the roster has none (Eileen Wang, Dayson How). Shown by tier: co-presidents, VPs, directors, the rest
- * of the team, then advisors.
+ * The 2026/27 team, from the club's "PMC 26 27" roster and in its order within each team. Photos come from
+ * that roster, or last year's site where the roster has none (Eileen Wang, Dayson How).
  */
 const ROSTER: Member[] = [
   m("Kat Mrzljak", "Co-President", "Co-Presidents", true),
   m("Chloe Cheung", "Co-President", "Co-Presidents", true, "https://www.linkedin.com/in/chloecheungc/", "💫"),
-  m("Claire Zhang", "VP Events", "Events", true, "https://www.linkedin.com/in/claire-zhang-985410301/"),
-  m("David Kim", "Events Director", "Events", false, "https://www.linkedin.com/in/dakim13/"),
-  m("Accita Ongko", "Mentor Outreach Director", "Partnerships", true, "https://www.linkedin.com/in/accitadeviongko/", "🐒"),
-  m("Eileen Wang", "Partnerships", "Partnerships", true),
-  m("Steven Zhu", "Partnerships", "Partnerships", false),
-  m("Moaz Aleem", "Partnerships", "Partnerships", false),
-  m("Jagathi Moturi", "Partnerships", "Partnerships", false),
-  m("Cherry Wang", "Partnerships", "Partnerships", false),
-  m("Cheuk-Lun Cheung", "VP Media", "Marketing", true, "https://www.linkedin.com/in/cheuk-lun-cheung"),
-  m("Fred Austin", "Design Director", "Marketing", true, "https://fredaustin.ca"),
-  m("Carmen Setiawan", "Design Director", "Marketing", false, "https://www.linkedin.com/in/carmen-laeticia-setiawan-20b173395"),
-  m("Kelly Wei Jin", "Marketing Director", "Marketing", false),
-  m("Jonathan Ysonza", "Media Director", "Marketing", false, "https://www.linkedin.com/in/jonathan-ysonza-9747a3337/"),
-  m("Jenny Lan", "Media Director", "Marketing", false),
-  m("Lily Chen", "Media Director", "Marketing", false),
-  m("Dayson How", "VP Community", "Community", true),
-  m("Riley So", "Community Director", "Community", false),
-  m("Rylie Tsui", "Community Director", "Community", false, "https://www.linkedin.com/in/rylie-taylor-tsui-961902381"),
   m("Jayjay Silapakalnpradit", "First Year Representative", "Community", true, "https://www.linkedin.com/in/jayjaysil"),
-  m("Jaymus Choi", "VP Finance", "Finance", false),
+  m("Rylie Tsui", "Community Director", "Community", false, "https://www.linkedin.com/in/rylie-taylor-tsui-961902381"),
+  m("Riley So", "Community Director", "Community", false),
+  m("Dayson How", "VP Community", "Community", true),
+  m("David Kim", "Events Director", "Events", false, "https://www.linkedin.com/in/dakim13/"),
+  m("Claire Zhang", "VP Events", "Events", true, "https://www.linkedin.com/in/claire-zhang-985410301/"),
   m("Sergio Lopez", "Finance Director", "Finance", false, "https://www.linkedin.com/in/sergiodalopez/"),
-  m("Donald Lee", "VP Technology", "Tech", true, "https://www.linkedin.com/in/donald-k-lee/"),
-  m("Alexi Manning", "Product Designer", "Tech", true, "https://www.linkedin.com/in/aleximanning"),
-  m("Roberta Lee", "Product Designer", "Tech", false),
-  m("Kashish Garg", "Developer", "Tech", true, "https://www.linkedin.com/in/kashishgarg1/"),
-  m("Evan Peng", "Developer", "Tech", false),
-  m("Ege Taslicay", "Developer", "Tech", false),
-  m("Kanwar Sekhon", "Developer", "Tech", false),
+  m("Jaymus Choi", "VP Finance", "Finance", false),
+  m("Carmen Setiawan", "Design Director", "Marketing", false, "https://www.linkedin.com/in/carmen-laeticia-setiawan-20b173395"),
+  m("Fred Austin", "Design Director", "Marketing", true, "https://fredaustin.ca"),
+  m("Kelly Wei Jin", "Marketing Director", "Marketing", false),
+  m("Lily Chen", "Media Director", "Marketing", false),
+  m("Jenny Lan", "Media Director", "Marketing", false),
+  m("Jonathan Ysonza", "Media Director", "Marketing", false, "https://www.linkedin.com/in/jonathan-ysonza-9747a3337/"),
+  m("Cheuk-Lun Cheung", "VP Media", "Marketing", true, "https://www.linkedin.com/in/cheuk-lun-cheung"),
   m("Tiya Verma", "Developer", "Tech", false),
-  m("Megan Chan", "Advisor", "Advisors", true, "https://www.linkedin.com/in/meganphchan/"),
+  m("Kanwar Sekhon", "Developer", "Tech", false),
+  m("Ege Taslicay", "Developer", "Tech", false),
+  m("Roberta Lee", "Product Designer", "Tech", false),
+  m("Alexi Manning", "Product Designer", "Tech", true, "https://www.linkedin.com/in/aleximanning"),
+  m("Evan Peng", "Developer", "Tech", false),
+  m("Kashish Garg", "Developer", "Tech", true, "https://www.linkedin.com/in/kashishgarg1/"),
+  m("Donald Lee", "VP Technology", "Tech", true, "https://www.linkedin.com/in/donald-k-lee/"),
+  m("Cherry Wang", "Partnerships", "Partnerships", false),
+  m("Accita Ongko", "Mentor Outreach Director", "Partnerships", true, "https://www.linkedin.com/in/accitadeviongko/", "🐒"),
+  m("Jagathi Moturi", "Partnerships", "Partnerships", false),
+  m("Moaz Aleem", "Partnerships", "Partnerships", false),
+  m("Steven Zhu", "Partnerships", "Partnerships", false),
+  m("Eileen Wang", "Partnerships", "Partnerships", true),
   m("Elisabeth Lau", "Advisor", "Advisors", true, "https://www.linkedin.com/in/elisabeth-lau"),
+  m("Megan Chan", "Advisor", "Advisors", true, "https://www.linkedin.com/in/meganphchan/"),
   m("Kezia Rijadi", "Advisor", "Advisors", true, "https://www.linkedin.com/in/keziar"),
   m("Jeffrey Xu", "Advisor", "Advisors", true, "https://www.linkedin.com/in/xu-jeffrey"),
 ];
 
-export const TEAM: Member[] = TIERS.flatMap((t) => ROSTER.filter((m) => m.tier === t));
+/** Team by team, each team's VP first, everyone else in the roster's order. */
+export const TEAM: Member[] = TEAMS.flatMap((t) => {
+  const team = ROSTER.filter((p) => p.group === t);
+  return [...team.filter((p) => p.role.startsWith("VP")), ...team.filter((p) => !p.role.startsWith("VP"))];
+});
 
 /** Source: ubcpmc.com/about, "What we offer". */
 export const OFFER = [

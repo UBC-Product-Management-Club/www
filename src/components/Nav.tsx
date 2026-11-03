@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from "react";
 import { LINKS } from "@/data/site";
+import { asset } from "@/lib/asset";
 
 const ITEMS = [
   ["#events", "Events"],
@@ -28,7 +29,7 @@ export default function Nav() {
   return (
     <nav aria-label="Primary" className={`nav${open ? " open" : ""}`}>
       <a className="logo" href="#top" onClick={() => setOpen(false)}>
-        <img src="/brand/pmc-logo-96.png" alt="" width="30" height="26" />
+        <img src={asset("/brand/pmc-logo-96.png")} alt="" width="30" height="26" />
         UBC PMC
       </a>
       <div className="nav-links" id="nav-links">

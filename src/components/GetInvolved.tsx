@@ -61,20 +61,16 @@ function Keyboard() {
 
 export default function GetInvolved() {
   return (
-    <section className="join" id="join" aria-labelledby="join-h" data-sky="dark">
-      <div className="join-glow" aria-hidden="true">
-        <i />
-        <i />
-      </div>
+    <section className="join board pink" id="join" aria-labelledby="join-h">
       <div className="wrap join-grid">
         <div className="join-copy">
           <h2 id="join-h">Launch your product career.</h2>
           <p className="lede">Get event invites, mentorship and a student network that’s already in the industry.</p>
           <div className="ctas">
-            <a className="btn white" href={LINKS.member}>
+            <a className="btn primary" href={LINKS.member}>
               Become a member <Arrow />
             </a>
-            <a className="btn ghost" href={LINKS.volunteer}>
+            <a className="btn secondary" href={LINKS.volunteer}>
               Volunteer with us
             </a>
           </div>

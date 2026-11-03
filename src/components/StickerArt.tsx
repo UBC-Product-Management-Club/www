@@ -1,4 +1,5 @@
 import type { EventSticker } from "@/data/site";
+import { asset } from "@/lib/asset";
 
 /**
  * Die-cut sticker art for each event. Every sticker starts with its white silhouette
@@ -15,11 +16,11 @@ export const STICKER_SIZE: Record<EventSticker["id"], [number, number]> = {
 
 /** Die-cut stickers made from each event's own branding (public/stickers), from its event page or repo. */
 const IMAGE: Partial<Record<EventSticker["id"], string>> = {
-  jackpot: "/stickers/jackpot.webp",
-  night: "/stickers/night.webp",
-  heist: "/stickers/heist.webp",
-  conference: "/stickers/conference.webp",
-  sprint: "/stickers/sprint.webp",
+  jackpot: asset("/stickers/jackpot.webp"),
+  night: asset("/stickers/night.webp"),
+  heist: asset("/stickers/heist.webp"),
+  conference: asset("/stickers/conference.webp"),
+  sprint: asset("/stickers/sprint.webp"),
 };
 
 const W = "#fff";

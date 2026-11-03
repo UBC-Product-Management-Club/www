@@ -23,7 +23,7 @@ export default function Upcoming() {
 
   if (!ev) {
     return (
-      <section className="upcoming" id="upcoming" aria-labelledby="up-h" data-sky="dark">
+      <section className="upcoming" id="upcoming" aria-labelledby="up-h">
         <div className="wrap up-empty">
           <h2 id="up-h">Up next</h2>
           <p>Next season’s events are on the way. Follow along for the first announcement.</p>
@@ -48,7 +48,7 @@ export default function Upcoming() {
         ];
 
   return (
-    <section className="upcoming" id="upcoming" aria-labelledby="up-h" data-sky="dark">
+    <section className="upcoming" id="upcoming" aria-labelledby="up-h">
       <div className="wrap up-grid">
         <div className="up-main">
           <h2 id="up-h" className="up-name">

@@ -1,9 +1,10 @@
 name: Build and Deploy to Cloud Run (STAGING)
 
+# Manual until the repo has its Google Cloud secrets (PROJECT_ID, APP_NAME, GCLOUD_AUTH) in a "staging"
+# environment; switch back to `push: branches: [main]` once they are added. GitHub Pages is the staging
+# link in the meantime (deploy-pages.yaml).
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 env:
   PROJECT_ID: ${{ secrets.PROJECT_ID }}

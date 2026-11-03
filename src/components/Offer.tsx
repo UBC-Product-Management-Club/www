@@ -1,30 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
 import { OFFER } from "@/data/site";
-import { gearPath } from "@/lib/gear";
+import { Stickies } from "./Playthings";
+import { asset } from "@/lib/asset";
 
-const GEAR_D = gearPath(500, 500, 490);
-
-/** Three offerings side by side over a slow brand-light field; the cards rise in one after another as they scroll in. */
+/** Three offerings side by side; the cards rise in one after another as they scroll in. */
 export default function Offer() {
   return (
-    <section className="offer" id="offer" aria-labelledby="offer-h" data-sky="light">
-      <div className="offer-field" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-        <b />
-        <svg viewBox="0 0 1000 1000">
-          <path d={GEAR_D} />
-          <circle cx="500" cy="500" r="330" />
-        </svg>
-      </div>
+    <section className="offer" id="offer" aria-labelledby="offer-h">
       <div className="wrap offer-stage">
         <div className="offer-intro">
-          <img className="offer-logo" src="/brand/pmc-logo.webp" alt="" width="512" height="445" />
+          <img className="offer-logo" src={asset("/brand/pmc-logo.webp")} alt="" width="512" height="445" />
           <div>
             <h2 id="offer-h">What we offer</h2>
             <p className="lede">Helping students explore product through hands-on events and community.</p>
           </div>
+          <Stickies />
         </div>
         <ul className="offer-cards">
           {OFFER.map((o, k) => (

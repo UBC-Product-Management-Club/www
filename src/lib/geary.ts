@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { asset } from "@/lib/asset";
 
 /** Geary's parts (named in the OBJ → GLB conversion) and their colours from the mascot art. */
 const PAINT: Record<string, THREE.MeshPhysicalMaterialParameters> = {
@@ -77,12 +78,12 @@ export type GearyRig = {
 
 let buffer: Promise<ArrayBuffer> | null = null;
 /** One download per page, however many Gearys are on it. */
-const fetchModel = () => (buffer ??= fetch("/models/geary.glb").then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status))));
+const fetchModel = () => (buffer ??= fetch(asset("/models/geary.glb")).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status))));
 
 export async function loadGeary({ reduce = false } = {}): Promise<GearyRig> {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const gltf = await loader.parseAsync((await fetchModel()).slice(0), "/models/");
+  const gltf = await loader.parseAsync((await fetchModel()).slice(0), asset("/models/"));
   const parts = bake(gltf.scene);
   const model = new THREE.Group();
   parts.forEach((m) => model.add(m));

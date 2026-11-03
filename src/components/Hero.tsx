@@ -50,10 +50,7 @@ function buildGear(teeth: number) {
 /** Gears floating around Geary (relative to Geary, kept clear of the headline): [x, y, z, size, teeth, spin direction]. */
 const FLOAT: [number, number, number, number, number, number][] = [
   [1.25, 1.05, -1.4, 0.42, 9, -1],
-  [1.2, -0.95, 0.2, 0.3, 8, 1],
   [-1.05, -1.2, -1.6, 0.34, 9, -1],
-  [0.4, 1.45, -3, 0.5, 12, 1],
-  [2.1, 0.1, -3.4, 0.7, 12, 1],
 ];
 
 const easeIn = (x: number) => x * x * x;
@@ -339,13 +336,8 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="hero" id="top" ref={sectionRef} data-sky="light">
+    <section className="hero" id="top" ref={sectionRef}>
       <div className="hero-stage">
-        <div className="wash" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </div>
         <div
           className="hero-gear"
           ref={canvasHost}

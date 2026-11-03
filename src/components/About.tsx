@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { STATS } from "@/data/site";
 import { gearPath } from "@/lib/gear";
 import { easeOut, range, sectionProgress, useMedia } from "@/lib/motion";
+import { Cursors } from "./Playthings";
 
 const GEAR_D = gearPath(500, 500, 496);
 /** Each stat as a tab: its window title, and what one dot in its grid stands for. */
@@ -20,7 +21,6 @@ export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const gearRef = useRef<HTMLDivElement>(null);
   const spinRef = useRef<HTMLDivElement>(null);
-  const inkRef = useRef<SVGSVGElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -28,8 +28,8 @@ export default function About() {
 
   useEffect(() => {
     const section = sectionRef.current!;
-    const els = [gearRef, spinRef, inkRef, statsRef, copyRef].map((r) => r.current!);
-    const [gear, spin, ink, stats, copy] = els;
+    const els = [gearRef, spinRef, statsRef, copyRef].map((r) => r.current!);
+    const [gear, spin, stats, copy] = els;
     const reset = () =>
       els.forEach((el) => {
         el.style.removeProperty("transform");
@@ -52,14 +52,12 @@ export default function About() {
       const next = shown < 0 ? p : shown + (p - shown) * (1 - Math.exp(-dt * 14));
       if (Math.abs(next - shown) < 0.00002) return;
       shown = Math.abs(p - next) < 0.00005 ? p : next;
-      // zoom out of the dark (we were inside the gear), then turn one tooth per stat
+      // the gear settles in from a little larger, then turns one tooth per stat
       const out = easeOut(range(shown, 0, 0.22));
       const turn = range(shown, STEP_FROM, STEP_TO) * (STATS.length - 1);
-      const dark = 1 - range(shown, 0.02, 0.2);
-      gear.style.transform = `scale(${(1 + 11 * (1 - out)).toFixed(4)})`;
+      gear.style.transform = `scale(${(1 + 0.5 * (1 - out)).toFixed(4)})`;
       spin.style.transform = `rotate(${(turn * 45 + shown * 12).toFixed(2)}deg)`;
-      ink.style.opacity = dark.toFixed(3);
-      stats.style.opacity = (1 - dark).toFixed(3);
+      stats.style.opacity = range(shown, 0.04, 0.18).toFixed(3);
       const c = range(shown, 0.12, 0.26);
       copy.style.opacity = c.toFixed(3);
       copy.style.transform = `translate3d(0, ${((1 - c) * 30).toFixed(1)}px, 0)`;
@@ -101,11 +99,9 @@ export default function About() {
       id="about"
       ref={sectionRef}
       aria-labelledby="about-h"
-      data-sky="light"
-      // pinned, the gear's ink covers the change from dark, so it happens under it
-      data-sky-at={scrolly ? "start" : undefined}
     >
       <div className="about-stage">
+        <Cursors />
         <div className="about-gear-col">
           <div className="about-gear" ref={gearRef} aria-hidden="true">
             <i className="about-gear-shadow" />
@@ -130,9 +126,6 @@ export default function About() {
                 <path d={GEAR_D} fill="url(#about-grad)" />
                 <path d={GEAR_D} fill="url(#about-sheen)" />
                 <circle cx="500" cy="500" r="330" fill="none" stroke="#fff" strokeOpacity=".22" strokeWidth="3" />
-              </svg>
-              <svg className="about-gear-ink" viewBox="0 0 1000 1000" ref={inkRef}>
-                <path d={GEAR_D} fill="#1d1838" />
               </svg>
             </div>
             <div className="about-stats" ref={statsRef}>
