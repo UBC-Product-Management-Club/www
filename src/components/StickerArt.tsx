@@ -6,11 +6,20 @@ import type { EventSticker } from "@/data/site";
  */
 export const STICKER_SIZE: Record<EventSticker["id"], [number, number]> = {
   getaway: [300, 150],
-  jackpot: [190, 190],
-  night: [250, 160],
-  heist: [210, 200],
-  conference: [230, 190],
-  sprint: [180, 214],
+  jackpot: [196, 196],
+  night: [300, 170],
+  heist: [290, 165],
+  conference: [220, 220],
+  sprint: [300, 137],
+};
+
+/** Die-cut stickers made from each event's own branding (public/stickers), from its event page or repo. */
+const IMAGE: Partial<Record<EventSticker["id"], string>> = {
+  jackpot: "/stickers/jackpot.webp",
+  night: "/stickers/night.webp",
+  heist: "/stickers/heist.webp",
+  conference: "/stickers/conference.webp",
+  sprint: "/stickers/sprint.webp",
 };
 
 const W = "#fff";
@@ -18,6 +27,8 @@ const INK = "#1d1838";
 
 export function StickerArt({ id, uid }: { id: EventSticker["id"]; uid: string }) {
   const [w, h] = STICKER_SIZE[id];
+  // eslint-disable-next-line @next/next/no-img-element
+  if (IMAGE[id]) return <img src={IMAGE[id]} width={w} height={h} alt="" className="sticker-svg" draggable={false} decoding="async" />;
   const g = (n: string) => `${uid}-${n}`;
   return (
     <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className="sticker-svg" aria-hidden="true">

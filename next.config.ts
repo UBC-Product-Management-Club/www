@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // a self-contained server.js for the Cloud Run image (see Dockerfile)
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
 };

@@ -1,0 +1,11 @@
+.git
+.github
+.claude
+.next
+node_modules
+exports
+npm-debug.log*
+.env*
+*.tsbuildinfo
+Dockerfile
+.dockerignore

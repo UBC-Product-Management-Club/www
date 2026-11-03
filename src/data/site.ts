@@ -17,16 +17,18 @@ export type EventSticker = {
   when: string;
   blurb: string;
   href?: string;
+  /** Poster for the event's polaroid; an event without one shows a polaroid still developing. */
+  poster?: string;
 };
 
 /** Each event lives in its own repo; stickers only link out. */
 export const EVENTS: EventSticker[] = [
   { id: "getaway", name: "Product Getaway", when: "Coming soon", blurb: "Details soon" },
   { id: "jackpot", name: "Product Jackpot", when: "Nov 21–22", blurb: "24-hour product challenge", href: "https://ubcpmc.com/productjackpot" },
-  { id: "night", name: "Product Night", when: "October", blurb: "Keynotes, small-group chats and mentors", href: "https://ubcpmc.com/productnight" },
-  { id: "heist", name: "Product Heist", when: "November", blurb: "A 24-hour product challenge", href: "https://ubcpmc.com/productheist" },
-  { id: "conference", name: "Product Conference", when: "February", blurb: "Keynotes, workshops and panels", href: "https://ubcpmc.com/productconference" },
-  { id: "sprint", name: "Product Sprint", when: "March", blurb: "Our flagship two-week PM competition", href: "https://ubcpmc.com/productsprint" },
+  { id: "night", name: "Product Night", when: "October", blurb: "Keynotes, small-group chats and mentors", href: "https://ubcpmc.com/productnight", poster: img("gIrG8JM7zAiFYqI98Pbu588PXU.jpg", 640) },
+  { id: "heist", name: "Product Heist", when: "November", blurb: "A 24-hour product challenge", href: "https://ubcpmc.com/productheist", poster: img("B0rBpxxJg0VYM53n9iPYj0JrLEc.jpg", 640) },
+  { id: "conference", name: "Product Conference", when: "February", blurb: "Keynotes, workshops and panels", href: "https://ubcpmc.com/productconference", poster: img("YOTBvfm9wMwuyEbB9JVEWFAMHQ.png", 640) },
+  { id: "sprint", name: "Product Sprint", when: "March", blurb: "Our flagship two-week PM competition", href: "https://ubcpmc.com/productsprint", poster: img("mg8wks2Uk8WpPri365cVxWetC8.png", 640) },
 ];
 
 export type Upcoming = {
@@ -73,53 +75,82 @@ export const STATS = [
   { n: "100+", label: "active members" },
 ];
 
-/** [name, role, framer photo id (null = initials), LinkedIn handle]. Update each year. */
-type Person = [string, string, string | null, string];
+export type TeamGroup = "Co-Presidents" | "Events" | "Partnerships" | "Marketing" | "Community" | "Finance" | "Tech" | "Advisors";
 
-export const TEAM: Record<"exec" | "dir" | "adv", Person[]> = {
-  exec: [
-    ["Megan Chan", "Co-President", "eNSaTFFltvlBVxvLKd8SFlWSw.png", "meganphchan"],
-    ["Minli Wang", "Co-President", "9b8PNP5VLZgFni8Zt0rDKaCrAcg.jpg", "minliw"],
-    ["Elisabeth Lau", "VP Partnerships", "1eHyAt7226V3vceeTIC06du5FYg.jpg", "elisabeth-lau"],
-    ["Toby Lau", "VP Technology", "hSnrl3KGJbPRJlKz61iC3FHRv5Y.png", "tobylau05"],
-    ["Nadeen Horia", "VP Marketing", "t47kSiV16cv19b3exxjmsXkdpk.jpg", "nadeenhoria"],
-    ["Lynn Vu", "VP Events", "QaoqjibB1kDqW9bMliEKiqSdm0k.png", "plynnvu"],
-    ["Chloe Cheung", "VP Finance", "ox80HxnhxWQhkTfpX4ZLQEU1PQ.png", "chloecheungc"],
-    ["Kezia Rijadi", "VP Community", "WCAlrh5nLV8hVQEyDgd0ixobq1k.png", "keziar"],
-  ],
-  dir: [
-    ["Brandon Jong", "Event Director", "cGNpxHMPbkHTV9IEtpfHDwgvgM.jpg", "brandon-jong"],
-    ["Aidan Chan", "Event Director", "CITZDJctn735c9ImFbGcHOKj8RA.png", "aidan-chan"],
-    ["William He", "Event Director", "IBNNG57HlMNbNTVxe9BR5IRH8.png", "will-he1117"],
-    ["Cheuk Cheung", "Marketing Director", "S7tbOP2g9YbrhmxtQ3xzSI0LuD0.jpg", "cheuk-lun-cheung"],
-    ["Kathleen Cheng", "Marketing Director", "DZo9GnFOLIaFLXdcmX5q1NwuVjI.jpg", "-kathleen-cheng"],
-    ["Dayson How", "Design Director", "4wz4ecLQvqUQC0HeV8b4YNoO84s.jpg", "dayson-how-6a616021b"],
-    ["Katrina Mrzljak", "Media Director", "oW4xeA1N9PfpVtCifsDeTqwo9E.jpg", "katrina-mrzljak"],
-    ["Elisha Kim", "Finance Director", "fxLqEwB1bxRKD7Xar2jbAEQOkY.png", "elisha-kim-2a6a08309"],
-    ["Herb Tan", "Corporate Outreach Director", "Tw4h7aSpqlkHg7s8Rmeaofe96nI.png", "herbmatthewtan"],
-    ["Erin Chiu", "Corporate Outreach Director", "tQt5Za17JfvrN5VLtnrtabD6yI.jpg", "erin--chiu"],
-    ["Eileen Wang", "Mentor Outreach Director", "AMOzpZUfBiatFYysG9uQEvao.jpg", "eileen-wang-105580326"],
-    ["Newgen Bao", "Mentor Outreach Director", "SAhWbsCTQ28sv7dS0gMefkBKdSs.png", "newgen-bao"],
-    ["Raksha Zunnuru", "Mentor Outreach Director", "JwMsqcy31Ja6cTliv5lEUd3FPE.jpg", "raksha-zunnuru"],
-    ["Melissa Fong", "Internal Program Director", "WJt6ZOe2y085HFlNOaUa4fQWYuA.jpg", "melissahlfong"],
-    ["Connor Young", "Community Director", "O86kdttey4fkMAiNm0JTJjuxYuc.jpg", "conryoung"],
-    ["Jeffrey Xu", "Community Director", "yKb0ARyHvi5bvlRqERiaIGOSuPM.jpg", "xu-jeffrey"],
-    ["Elaine Li", "Product Designer", "FDveCh79LVP6wtOP3myTC4mXaM.jpg", "elaine-li-55b880224"],
-    ["Kevin Lei", "Developer", "vOBA4j9XGIfCYsrO0P0MMe5Yik.png", "klei05"],
-    ["Si Moon Song", "Developer", "or6cSBPBf0RyXwqJwcT7AGFeX08.png", "simoonsong"],
-    ["Jeffrey Zhai", "Sr. Developer", "ZV5PmgWx4LdDsT8mcJysPgvQ1I.png", "jeffrey-zhai-519029257"],
-  ],
-  adv: [
-    ["Kai Koyama-Wang", "Advisor", "PoiJGQItOjHrUs0DOOHeTi13fFA.png", "kaikoyamawong"],
-    ["Clara Lei", "Advisor", "euDfv8OJNwyyUHVZNCBQQCA1I.png", "claralei"],
-    ["Kitty Liu", "Advisor", "5C4b3pHtYxksX0Ws4YzLvmFo3g.jpg", "kittyliu3"],
-    ["Gunyup Chun", "Advisor", "tl9vlVa0pFAx0tgLElr0KS1NtQ.png", "gunyupchun"],
-    ["Veronica Zoleta", "Advisor", "1aUmiO6AFCsMRlIJU4quwzg7OQ.png", "veronicazoleta"],
-    ["Gordon Cheung", "Advisor", "9K1Za2atInExZhu3TGtsLs7tqHI.png", "gordon-cheung-hwc"],
-    ["Fahim Gbon", "Advisor", "YtpC6ugewxFjjPN8CX7I06hvNR8.png", "fahimgbon"],
-    ["James Kim", "Advisor", "MapfvQF6z6n2BCKJzOMBenDKGhw.jpg", "jameskimca"],
-  ],
+export type Tier = "Co-Presidents" | "VPs" | "Directors" | "Team" | "Advisors";
+const TIERS: Tier[] = ["Co-Presidents", "VPs", "Directors", "Team", "Advisors"];
+
+export type Member = {
+  name: string;
+  role: string;
+  group: TeamGroup;
+  tier: Tier;
+  /** Square headshot in public/team, or null for initials. */
+  photo: string | null;
+  url: string | null;
+  /** The emoji each member picks for their polaroid. Ask anyone still null to send one. */
+  emoji: string | null;
 };
+
+const m = (name: string, role: string, group: TeamGroup, photo: boolean, url: string | null = null, emoji: string | null = null): Member => ({
+  name,
+  role,
+  group,
+  tier:
+    group === "Advisors" ? "Advisors"
+    : group === "Co-Presidents" ? "Co-Presidents"
+    : role.startsWith("VP") ? "VPs"
+    : role.includes("Director") ? "Directors"
+    : "Team",
+  photo: photo ? `/team/${name.toLowerCase().replace(/[^a-z]+/g, "-")}.webp` : null,
+  url,
+  emoji,
+});
+
+/**
+ * The 2026/27 team, from the club's "PMC 26 27" roster. Photos come from that roster, or last year's site
+ * where the roster has none (Eileen Wang, Dayson How). Shown by tier: co-presidents, VPs, directors, the rest
+ * of the team, then advisors.
+ */
+const ROSTER: Member[] = [
+  m("Kat Mrzljak", "Co-President", "Co-Presidents", true),
+  m("Chloe Cheung", "Co-President", "Co-Presidents", true, "https://www.linkedin.com/in/chloecheungc/", "💫"),
+  m("Claire Zhang", "VP Events", "Events", true, "https://www.linkedin.com/in/claire-zhang-985410301/"),
+  m("David Kim", "Events Director", "Events", false, "https://www.linkedin.com/in/dakim13/"),
+  m("Accita Ongko", "Mentor Outreach Director", "Partnerships", true, "https://www.linkedin.com/in/accitadeviongko/", "🐒"),
+  m("Eileen Wang", "Partnerships", "Partnerships", true),
+  m("Steven Zhu", "Partnerships", "Partnerships", false),
+  m("Moaz Aleem", "Partnerships", "Partnerships", false),
+  m("Jagathi Moturi", "Partnerships", "Partnerships", false),
+  m("Cherry Wang", "Partnerships", "Partnerships", false),
+  m("Cheuk-Lun Cheung", "VP Media", "Marketing", true, "https://www.linkedin.com/in/cheuk-lun-cheung"),
+  m("Fred Austin", "Design Director", "Marketing", true, "https://fredaustin.ca"),
+  m("Carmen Setiawan", "Design Director", "Marketing", false, "https://www.linkedin.com/in/carmen-laeticia-setiawan-20b173395"),
+  m("Kelly Wei Jin", "Marketing Director", "Marketing", false),
+  m("Jonathan Ysonza", "Media Director", "Marketing", false, "https://www.linkedin.com/in/jonathan-ysonza-9747a3337/"),
+  m("Jenny Lan", "Media Director", "Marketing", false),
+  m("Lily Chen", "Media Director", "Marketing", false),
+  m("Dayson How", "VP Community", "Community", true),
+  m("Riley So", "Community Director", "Community", false),
+  m("Rylie Tsui", "Community Director", "Community", false, "https://www.linkedin.com/in/rylie-taylor-tsui-961902381"),
+  m("Jayjay Silapakalnpradit", "First Year Representative", "Community", true, "https://www.linkedin.com/in/jayjaysil"),
+  m("Jaymus Choi", "VP Finance", "Finance", false),
+  m("Sergio Lopez", "Finance Director", "Finance", false, "https://www.linkedin.com/in/sergiodalopez/"),
+  m("Donald Lee", "VP Technology", "Tech", true, "https://www.linkedin.com/in/donald-k-lee/"),
+  m("Alexi Manning", "Product Designer", "Tech", true, "https://www.linkedin.com/in/aleximanning"),
+  m("Roberta Lee", "Product Designer", "Tech", false),
+  m("Kashish Garg", "Developer", "Tech", true, "https://www.linkedin.com/in/kashishgarg1/"),
+  m("Evan Peng", "Developer", "Tech", false),
+  m("Ege Taslicay", "Developer", "Tech", false),
+  m("Kanwar Sekhon", "Developer", "Tech", false),
+  m("Tiya Verma", "Developer", "Tech", false),
+  m("Megan Chan", "Advisor", "Advisors", true, "https://www.linkedin.com/in/meganphchan/"),
+  m("Elisabeth Lau", "Advisor", "Advisors", true, "https://www.linkedin.com/in/elisabeth-lau"),
+  m("Kezia Rijadi", "Advisor", "Advisors", true, "https://www.linkedin.com/in/keziar"),
+  m("Jeffrey Xu", "Advisor", "Advisors", true, "https://www.linkedin.com/in/xu-jeffrey"),
+];
+
+export const TEAM: Member[] = TIERS.flatMap((t) => ROSTER.filter((m) => m.tier === t));
 
 /** Source: ubcpmc.com/about, "What we offer". */
 export const OFFER = [
@@ -202,17 +233,6 @@ export const LOGOS: [string, string][] = [
   ["Hootsuite", "7CX9shyKj3oIvYYgnjn61RQ2s.png"],
   ["Dayforce", "iFbuMcrGjHuCh8yw4D9Mxa9qgM.png"],
   ["Salesforce", "qA9D5BuGxQcMH0EcJteo4GZ5Do.png"],
-];
-
-export const LIFE = [
-  { src: img("uSFw5tHixwyNTphFnmrrRPUx0.png"), alt: "PMC members gathered for a group photo", caption: "The whole crew", tag: "Team", ratio: 1.4 },
-  { src: img("gIrG8JM7zAiFYqI98Pbu588PXU.jpg"), alt: "Product Night poster featuring Geary", caption: "Product Night", tag: "October", ratio: 0.8 },
-  { src: img("hKSqHX8yNZVTmFBzSkcLyPLA9U.jpg"), alt: "The PMC booth welcoming students", caption: "Say hi at the booth", tag: "Booth", ratio: 1 },
-  { src: img("B0rBpxxJg0VYM53n9iPYj0JrLEc.jpg"), alt: "Product Heist poster", caption: "Product Heist", tag: "November", ratio: 0.8 },
-  { src: img("Cc99yzFG3yLwm48n1fgNQ24U6TM.png"), alt: "PMC members at an outdoor picnic", caption: "Picnic social", tag: "Socials", ratio: 1.33 },
-  { src: img("YOTBvfm9wMwuyEbB9JVEWFAMHQ.png"), alt: "Product Conference poster", caption: "Product Conference", tag: "February", ratio: 0.8 },
-  { src: img("YjmI7fd8LVl0as6nmNvo3pD7Zg.png"), alt: "Event team lined up at the front of a lecture hall", caption: "Event day", tag: "Team", ratio: 1.45 },
-  { src: img("mg8wks2Uk8WpPri365cVxWetC8.png"), alt: "Product Sprint poster", caption: "Product Sprint", tag: "March", ratio: 0.8 },
 ];
 
 export const PHOTOS = {

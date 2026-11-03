@@ -33,7 +33,7 @@ Canada's largest product management club. Founded in 2020; uses industry connect
 ## Capabilities and Constraints
 
 - No backend in this repo; join flows are external links.
-- Team roster changes yearly (2025/26 roster in `src/data/team.ts`).
+- Team roster changes yearly: the 2026/27 roster (35 people, from the club's "PMC 26 27" sheet) is `TEAM` in `src/data/site.ts`, headshots in `public/team/`. Each member picks an emoji for their polaroid; most are still to be collected.
 - Stats (600+ students impacted, 32+ events since 2023, 100+ active members) come from the club's earlier site draft.
 
 ## Brand Commitments
@@ -43,6 +43,8 @@ Canada's largest product management club. Founded in 2020; uses industry connect
 - The glossy 3D PMC triangle logo.
 - Geary, the gear-headed mascot (silver gear head, navy suit, white collar, orange tie). 3D model in `public/models/geary.glb`, converted from the club's Rhino export.
 - User sketch (Oct 2026) pins the page sequence: draggable 3D gear hero, gear zooms into a dark events section with peelable, draggable event stickers, gear turns to show stats beside Who We Are / Our Mission, an ID lanyard cycling exec profiles beside photos, and Get Involved with an interactive 3D Geary.
+- Iteration 1 feedback (Nov 2026) supersedes parts of it: the hero stays the 3D Geary eye dive with the headline "Canada's Largest Product Management Club"; events are polaroids with each event's sticker; stats sit in a Mac window with a tab each; the team is a 3D keychain of three glass polaroids, cycling sets every 3 s with a ~1 s fade; the "worked at" logos are 3D keycaps in Get Involved; the page reads as one continuous frame. Keep existing copy unless asked.
+- Iteration 2 (Nov 2026): event stickers are die-cut from each event's own branding (`public/stickers`, from the event pages and the event repos); What we offer has no turning prism; the keychain only twists, never spins, and names are not links; the team shows co-presidents, VPs, directors, the rest of the team, then advisors; rendered 3D gear PNGs (`public/gears`) straddle the section joins so the page reads as one surface; the hero's "Product Management Club" carries the brand gradient.
 
 ## Evidence on Hand
 

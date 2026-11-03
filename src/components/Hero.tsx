@@ -354,7 +354,9 @@ export default function Hero() {
           aria-label="Geary, the PMC mascot, in 3D among floating brand gears. Drag or use the arrow keys to turn Geary; press Enter to spin the gear."
         />
         <div className="wrap hero-copy" ref={copyRef}>
-          <h1>Canada’s Largest Product Management Club</h1>
+          <h1>
+            Canada’s Largest <span className="grad">Product Management Club</span>
+          </h1>
           <div className="ctas">
             <a className="btn primary" href={LINKS.member}>
               Become a member <Arrow />

@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { LINKS, LOGOS, img } from "@/data/site";
+import { LINKS } from "@/data/site";
 import { Discord, Instagram, LinkedIn } from "./icons";
 
 const SOCIAL = [
@@ -7,25 +7,6 @@ const SOCIAL = [
   { href: LINKS.linkedin, label: "LinkedIn", Icon: LinkedIn },
   { href: LINKS.discord, label: "Discord", Icon: Discord },
 ];
-
-export function LogoStrip() {
-  return (
-    <div className="logos wrap">
-      <p id="logos-h">PMC members have worked at</p>
-      <div className="track" role="region" aria-labelledby="logos-h">
-        <ul>
-          {[0, 1].map((d) =>
-            LOGOS.map(([n, f]) => (
-              <li key={`${d}${n}`} aria-hidden={d ? true : undefined}>
-                <img src={img(f, 512)} alt={d ? "" : n} loading="lazy" />
-              </li>
-            )),
-          )}
-        </ul>
-      </div>
-    </div>
-  );
-}
 
 export function Footer() {
   return (

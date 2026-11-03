@@ -1,247 +1,371 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useRef } from "react";
-import { TEAM, img } from "@/data/site";
+import { useEffect, useRef, useState } from "react";
+import { PHOTOS, TEAM, type Member } from "@/data/site";
 import { gearPath } from "@/lib/gear";
-import { sectionProgress } from "@/lib/motion";
-import GearyMini, { type GearyDriver } from "./GearyMini";
+import { useMedia } from "@/lib/motion";
+import { Arrow, ArrowLeft, Pause, Play } from "./icons";
 
-const FRAME = gearPath(100, 100, 98, { teeth: 10, rTip: 1, rRoot: 0.82, tipHalf: 0.13, rootHalf: 0.2 });
-const COG = gearPath(100, 100, 98, { teeth: 12, rTip: 1, rRoot: 0.84, tipHalf: 0.1, rootHalf: 0.16 });
-const RAMP = ["#8b9cf2", "#a97fdc", "#d25fa6", "#e4405e"];
-const initials = (n: string) => n.split(" ").map((w) => w[0]).join("");
-type Person = (typeof TEAM)["exec"][number];
-
-/** Two factory lines: executives and advisors run left, directors run right. */
-const LINES: { key: string; label: string; people: Person[]; dir: 1 | -1 }[] = [
-  { key: "a", label: "Executives and advisors", people: [...TEAM.exec, ...TEAM.adv], dir: -1 },
-  { key: "b", label: "Directors", people: TEAM.dir, dir: 1 },
+/** Each set of three shows for HOLD ms, then cross-fades over 2 × FADE ms. */
+const HOLD = 3000;
+const FADE = 500;
+const SETS: Member[][] = Array.from({ length: Math.ceil(TEAM.length / 3) }, (_, i) => TEAM.slice(i * 3, i * 3 + 3));
+/** The three strands off the ring: fan angle (deg), depth (px) and chain links. The middle one hangs in front, the outer two longer and wider. */
+const STRANDS = [
+  { angle: 40, z: -46, links: 12 },
+  { angle: 0, z: 34, links: 7 },
+  { angle: -40, z: -46, links: 13 },
 ];
-/** Px the belts travel before the first card meets Geary and after the last one leaves. */
-const LEAD = 70;
+const LINK = 17; // px of chain per link
+/** The keychain's resting pose (deg), and how far a drag can twist it either way. */
+const HOME = { ry: -12, rx: 6 };
+const TWIST = 38;
+const CHARM = gearPath(100, 100, 96);
+const initials = (n: string) => n.split(/[\s-]+/).map((w) => w[0]).join("").slice(0, 2);
+const first = (n: string) => n.split(" ")[0];
+const tiersOf = (set: Member[]) => [...new Set(set.map((m) => m.tier))].join(" · ");
 
-function Member({ person, i }: { person: Person; i: number }) {
-  const [name, role, photo, li] = person;
-  const id = `gear-${i}`;
-  // every frame gets its own turn of the brand ramp, so the line shimmers instead of repeating
-  const angle = (i * 67) % 360;
-  return (
-    <li className="unit" style={{ "--spin": i % 2 ? "-36deg" : "36deg" } as React.CSSProperties}>
-      <a href={`https://www.linkedin.com/in/${li}/`} target="_blank" rel="noopener" className="member">
-        <span className="member-frame">
-          <svg viewBox="0 0 200 200" aria-hidden="true" className="member-gear">
-            <defs>
-              <linearGradient id={id} gradientTransform={`rotate(${angle} .5 .5)`}>
-                {RAMP.map((c, k) => (
-                  <stop key={c} offset={k / (RAMP.length - 1)} stopColor={c} />
-                ))}
-              </linearGradient>
-            </defs>
-            <path d={FRAME} fill={`url(#${id})`} stroke={`url(#${id})`} strokeWidth="6" strokeLinejoin="round" />
-          </svg>
-          <span className="member-photo">
-            {photo ? <img src={img(photo, 256)} alt="" loading="lazy" decoding="async" /> : <span>{initials(name)}</span>}
-          </span>
-        </span>
-        <b>{name}</b>
-        <span className="role">{role}</span>
-        <span className="sr"> (LinkedIn)</span>
-      </a>
-    </li>
+function Badge({ m }: { m: Member }) {
+  return m.emoji ? (
+    <span className="kc-emoji" role="img" aria-label={`${first(m.name)}’s emoji`}>
+      {m.emoji}
+    </span>
+  ) : (
+    <span className="kc-emoji none" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <path d={CHARM} />
+        <circle cx="100" cy="100" r="30" />
+      </svg>
+    </span>
   );
 }
 
-function Cog({ className, teeth = COG }: { className: string; teeth?: string }) {
+function Card({ m }: { m: Member }) {
   return (
-    <svg className={`cog ${className}`} viewBox="0 0 200 200" aria-hidden="true">
-      <path d={teeth} />
-      <circle cx="100" cy="100" r="34" />
-    </svg>
+    <div className="kc-card">
+      <div className="kc-face front">
+        <i className="kc-eyelet" aria-hidden="true" />
+        <span className="kc-photo">
+          {m.photo ? <img src={m.photo} alt="" draggable={false} /> : <span>{initials(m.name)}</span>}
+        </span>
+        <span className="kc-name">{m.name}</span>
+        <span className="kc-role">{m.role}</span>
+        <Badge m={m} />
+        <i className="kc-sheen" aria-hidden="true" />
+      </div>
+    </div>
   );
 }
 
 export default function Team() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const driver = useRef<GearyDriver>({ gaze: null, speed: 0.35, hops: 0 });
+  const [set, setSet] = useState(0);
+  const [out, setOut] = useState(false);
+  const [chosen, setPlaying] = useState(true);
+  // no autoplay for reduced motion; the arrows and the indicator still change sets
+  const reduced = useMedia("(prefers-reduced-motion: reduce)", true);
+  const playing = chosen && !reduced;
+  const stageRef = useRef<HTMLDivElement>(null);
+  const rigRef = useRef<HTMLDivElement>(null);
+  const dotsRef = useRef<HTMLDivElement>(null);
+  const live = useRef({ set: 0, busy: false, hold: 0, paused: false, playing: true });
+
+  /** Fade the current three out, swap in set k, fade them back in. */
+  const go = (k: number) => {
+    const L = live.current;
+    const next = (k + SETS.length) % SETS.length;
+    if (L.busy || next === L.set) return;
+    L.busy = true;
+    L.hold = 0;
+    setOut(true);
+    window.setTimeout(() => {
+      L.set = next;
+      setSet(next);
+      requestAnimationFrame(() => {
+        setOut(false);
+        window.setTimeout(() => (L.busy = false), FADE);
+      });
+    }, FADE);
+  };
+  const goRef = useRef(go);
+  useEffect(() => {
+    goRef.current = go;
+    live.current.playing = playing;
+  });
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; // the plain grid stays
-    const section = sectionRef.current!;
-    const stage = section.querySelector<HTMLElement>(".factory-stage")!;
-    const geary = section.querySelector<HTMLElement>(".station-geary")!;
-    const cogs = [...section.querySelectorAll<SVGElement>(".cog")];
-    const lines = [...section.querySelectorAll<HTMLElement>(".line")];
-    section.classList.add("is-live");
+    const stage = stageRef.current!;
+    const rig = rigRef.current!;
+    const dots = dotsRef.current!;
+    const strands = [...rig.querySelectorAll<HTMLElement>(".kc-strand")];
+    const hangs = [...rig.querySelectorAll<HTMLElement>(".kc-hang")];
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const L = live.current;
 
-    type Line = {
-      cargo: HTMLElement;
-      tread: HTMLElement;
-      rollers: HTMLElement[];
-      units: HTMLElement[];
-      centres: number[];
-      half: number; // half a unit's width
-      w: number;
-      dir: number;
-      eyeY: number; // where Geary looks on this line, relative to the stage
-      at: number; // index of the member at Geary's station, or -1
+    // the keychain is a little physics toy: an anchor on a spring, a turn with inertia, three pendulums
+    const s = {
+      x: 0, y: 0, vx: 0, vy: 0, ax: 0, lastX: 0,
+      ry: HOME.ry, vry: 0, rx: HOME.rx, vrx: 0,
+      th: [0.06, -0.04, 0.08], vth: [0, 0, 0],
+      ps: [0, 0, 0], vps: [0, 0, 0],
     };
-    let L: Line[] = [];
-    let cx = 0, travel = 0;
-    let g = { x: 0, y: 0, w: 1, h: 1 };
+    let drag: { mode: "ring" | "turn"; px: number; py: number; ox: number; oy: number; moved: number } | null = null;
+    let suppress = false;
 
-    // all layout reads happen here, on resize; the frame loop only writes transforms
-    const measure = () => {
-      cx = stage.clientWidth / 2;
-      L = lines.map((el, k) => {
-        const cargo = el.querySelector<HTMLElement>(".cargo")!;
-        const units = [...cargo.querySelectorAll<HTMLElement>(".unit")];
-        return {
-          cargo,
-          tread: el.querySelector<HTMLElement>(".tread")!,
-          rollers: [...el.querySelectorAll<HTMLElement>(".belt-side b")],
-          units,
-          centres: units.map((u) => u.offsetLeft + u.offsetWidth / 2),
-          half: (units[0]?.offsetWidth ?? 0) / 2,
-          w: cargo.scrollWidth,
-          dir: LINES[k].dir,
-          eyeY: el.offsetTop + cargo.offsetTop + cargo.offsetHeight * 0.4,
-          at: L[k]?.at ?? -1,
-        };
-      });
-      const station = geary.parentElement!;
-      g = { x: station.offsetLeft + geary.offsetLeft, y: station.offsetTop + geary.offsetTop, w: geary.offsetWidth, h: geary.offsetHeight };
-      travel = Math.max(...L.map((l) => l.w + LEAD * 2));
-      // the longer belt moves ~1.7px per px scrolled: brisk, not a slog
-      section.style.height = `calc(100svh + ${Math.round(travel * 0.6)}px)`;
-      last = -1;
+    const down = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const ring = !!(e.target as HTMLElement).closest("[data-ring]");
+      drag = { mode: ring ? "ring" : "turn", px: e.clientX, py: e.clientY, ox: s.x, oy: s.y, moved: 0 };
+      try {
+        stage.setPointerCapture(e.pointerId);
+      } catch {} // a pointer that already ended can't be captured; the drag still works without it
+      stage.classList.add("grabbing");
     };
-    let last = -1;
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(stage);
-    lines.forEach((el) => ro.observe(el.querySelector(".cargo")!)); // fonts and photos settle the belt widths
-
-    // belt offset at progress p: line A starts just right of Geary and runs left, line B the reverse
-    const offset = (l: Line, p: number) =>
-      l.dir < 0 ? cx + LEAD - p * (l.w + LEAD * 2) : cx - LEAD - l.w + p * (l.w + LEAD * 2);
-
-    // keyboard: tabbing to a member scrolls the line until they're at Geary's station
-    const focus = (e: FocusEvent) => {
-      const unit = (e.target as HTMLElement).closest<HTMLElement>(".unit");
-      const l = unit && L.find((x) => x.units.includes(unit));
-      if (!unit || !l) return;
-      const c = l.centres[l.units.indexOf(unit)];
-      const span = l.w + LEAD * 2;
-      const p = l.dir < 0 ? (LEAD + c) / span : (LEAD + l.w - c) / span;
-      const top = section.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: top + p * (section.offsetHeight - window.innerHeight), behavior: "instant" });
-      shown = p;
+    const move = (e: PointerEvent) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.px, dy = e.clientY - drag.py;
+      if (drag.mode === "ring") {
+        const w = stage.clientWidth * 0.36;
+        s.x = Math.max(-w, Math.min(w, drag.ox + dx));
+        s.y = Math.max(-60, Math.min(140, drag.oy + dy));
+        drag.moved = Math.hypot(dx, dy);
+      } else {
+        // rubber-banded: the further it twists, the harder it pulls back, so a card never turns edge-on
+        const pull = 1 - Math.min(0.85, Math.abs(s.ry - HOME.ry) / TWIST);
+        const d = (e.movementX || 0) * 0.35 * pull;
+        s.vry = d * 60; // deg/s, handed to the spring on release
+        s.ry = Math.max(HOME.ry - TWIST, Math.min(HOME.ry + TWIST, s.ry + d));
+        s.rx = Math.max(-14, Math.min(20, s.rx - (e.movementY || 0) * 0.12));
+        drag.moved += Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0);
+      }
     };
-    section.addEventListener("focusin", focus);
+    const up = () => {
+      if (drag && drag.moved > 6) suppress = true; // a drag is not a click
+      drag = null;
+      stage.classList.remove("grabbing");
+    };
+    const click = (e: MouseEvent) => {
+      if (!suppress) return;
+      e.preventDefault();
+      e.stopPropagation();
+      suppress = false;
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.target !== stage) return;
+      if (e.key === "ArrowLeft") s.vry -= 120;
+      else if (e.key === "ArrowRight") s.vry += 120;
+      else return;
+      e.preventDefault();
+    };
+    stage.addEventListener("pointerdown", down);
+    stage.addEventListener("pointermove", move);
+    stage.addEventListener("pointerup", up);
+    stage.addEventListener("pointercancel", up);
+    stage.addEventListener("click", click, true);
+    stage.addEventListener("keydown", key);
 
     let visible = false;
-    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting), { rootMargin: "100px" });
-    io.observe(section);
+    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting), { rootMargin: "60px" });
+    io.observe(stage);
+    // narrow stages fan the strands less, so all three polaroids stay on screen
+    let fan = 1;
+    const ro = new ResizeObserver(() => (fan = Math.max(0.45, Math.min(1, stage.clientWidth / 600))));
+    ro.observe(stage);
 
-    let raf = 0, shown = -1, then = performance.now();
+    let raf = 0, then = performance.now();
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      const dt = Math.min(0.05, (now - then) / 1000);
+      const dt = Math.min(0.033, (now - then) / 1000);
       then = now;
-      if (!visible) return;
-      const p = sectionProgress(section);
-      // glide toward the scroll position, so wheel steps become motion instead of jumps
-      const prev = shown;
-      shown = shown < 0 ? p : shown + (p - shown) * (1 - Math.exp(-dt * 16));
-      if (Math.abs(p - shown) < 0.00005) shown = p;
-      const d = driver.current;
-      d.speed += (0.35 + Math.min(10, Math.abs(shown - prev) * 1200) - d.speed) * 0.15;
-      if (shown === last) return;
-      last = shown;
+      if (!visible || document.hidden) return;
 
-      let best = Infinity, gazeX = cx, gazeY = 0;
-      for (const l of L) {
-        const x = offset(l, shown);
-        l.cargo.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
-        // treads slide with the belt (the stripe repeats every 26px); rollers turn at radius 7px
-        l.tread.style.transform = `translate3d(${((x % 26) - 26).toFixed(1)}px,0,0)`;
-        const roll = `rotate(${((x / 7) * (180 / Math.PI)).toFixed(0)}deg)`;
-        for (const r of l.rollers) r.style.transform = roll;
-
-        let at = -1;
-        for (let i = 0; i < l.centres.length; i++) {
-          const dist = Math.abs(x + l.centres[i] - cx);
-          if (dist < l.half) at = i;
-          if (dist < best) {
-            best = dist;
-            gazeX = x + l.centres[i];
-            gazeY = l.eyeY;
-          }
-        }
-        if (at !== l.at) {
-          if (l.at >= 0) l.units[l.at].classList.remove("at-station");
-          if (at >= 0) {
-            l.units[at].classList.add("at-station");
-            d.hops++; // Geary hops for each member who arrives
-          }
-          l.at = at;
-        }
+      // anchor: follows the hand while the ring is held, then springs home
+      const pvx = s.vx;
+      if (drag?.mode === "ring") {
+        s.vx = (s.x - s.lastX) / dt;
+      } else {
+        s.vx += (-26 * s.x - 7 * s.vx) * dt;
+        s.vy += (-26 * s.y - 7 * s.vy) * dt;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
       }
-      const turn = shown * travel * 0.9;
-      cogs.forEach((c, i) => (c.style.transform = `rotate(${(turn * [-0.5, 0.8, -1.2][i]).toFixed(1)}deg)`));
-      d.gaze = { x: ((gazeX - g.x) / g.w) * 2 - 1, y: -((gazeY - g.y) / g.h) * 2 + 1 };
+      s.lastX = s.x;
+      s.ax = (s.vx - pvx) / dt;
+
+      // turn: a damped spring back to facing you, so a let-go keychain sways to rest instead of snapping
+      if (drag?.mode !== "turn") {
+        s.vry += (-(s.ry - HOME.ry) * 30 - s.vry * 7) * dt;
+        s.ry = Math.max(HOME.ry - TWIST, Math.min(HOME.ry + TWIST, s.ry + s.vry * dt));
+        s.vrx += (-(s.rx - HOME.rx) * 30 - s.vrx * 7) * dt;
+        s.rx += s.vrx * dt;
+      }
+
+      // pendulums: the anchor's sideways jolt swings them, the turn tips them, a breeze keeps them alive
+      for (let i = 0; i < 3; i++) {
+        const breeze = reduce ? 0 : Math.sin(now / 900 + i * 2.1) * 0.35;
+        s.vth[i] += (-8 * s.th[i] - 0.9 * s.vth[i] - s.ax / 420 + breeze) * dt;
+        s.th[i] = Math.max(-0.9, Math.min(0.9, s.th[i] + s.vth[i] * dt));
+        s.vps[i] += (-9 * s.ps[i] - 1.1 * s.vps[i] - s.vry * 0.001 + (reduce ? 0 : Math.cos(now / 1100 + i) * 0.12)) * dt;
+        s.ps[i] = Math.max(-0.6, Math.min(0.6, s.ps[i] + s.vps[i] * dt));
+        const a = STRANDS[i].angle * fan + (s.th[i] * 180) / Math.PI;
+        strands[i].style.transform = `translateZ(${STRANDS[i].z}px) rotate(${a.toFixed(2)}deg) rotateX(${((s.ps[i] * 180) / Math.PI).toFixed(2)}deg)`;
+        hangs[i].style.transform = `rotate(${(-a * 0.5).toFixed(2)}deg)`;
+      }
+      rig.style.transform = `translate3d(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px, 0) rotateX(${s.rx.toFixed(2)}deg) rotateY(${s.ry.toFixed(2)}deg)`;
+
+      // autoplay: three seconds a set, paused while you're holding, hovering or reading
+      if (L.playing && !L.paused && !drag && !L.busy) {
+        L.hold += dt * 1000;
+        if (L.hold >= HOLD) goRef.current(L.set + 1);
+      }
+      dots.style.setProperty("--fill", String(Math.min(1, L.hold / HOLD)));
     };
     raf = requestAnimationFrame(frame);
 
     return () => {
       cancelAnimationFrame(raf);
-      ro.disconnect();
       io.disconnect();
-      section.removeEventListener("focusin", focus);
-      section.classList.remove("is-live");
-      section.style.height = "";
+      ro.disconnect();
+      stage.removeEventListener("pointerdown", down);
+      stage.removeEventListener("pointermove", move);
+      stage.removeEventListener("pointerup", up);
+      stage.removeEventListener("pointercancel", up);
+      stage.removeEventListener("click", click, true);
+      stage.removeEventListener("keydown", key);
     };
   }, []);
 
-  let n = 0;
+  const pause = () => {
+    live.current.paused = true;
+  };
+  const resume = () => {
+    live.current.paused = false;
+  };
+  // swipe the indicator (or the caption under the keychain) to jump a set
+  const swipe = useRef<number | null>(null);
+  const swipeHandlers = {
+    onPointerDown: (e: React.PointerEvent) => (swipe.current = e.clientX),
+    onPointerUp: (e: React.PointerEvent) => {
+      if (swipe.current === null) return;
+      const dx = e.clientX - swipe.current;
+      swipe.current = null;
+      if (Math.abs(dx) > 30) go(live.current.set + (dx < 0 ? 1 : -1));
+    },
+  };
+
+  const people = SETS[set];
+
   return (
-    <section className="factory" id="team" ref={sectionRef} aria-labelledby="team-h">
-      <div className="factory-stage">
-        <div className="wrap factory-head">
+    <section className="team" id="team" aria-labelledby="team-h" onFocus={pause} onBlur={resume}>
+      <div className="team-glow" aria-hidden="true">
+        <i />
+        <i />
+      </div>
+      <div className="wrap team-grid">
+        <div className="team-copy">
           <h2 id="team-h">Meet the team</h2>
-          <p className="lede">The people behind UBC PMC, 2025/26.</p>
-        </div>
+          <p className="lede">The people behind UBC PMC, 2026/27.</p>
 
-        <div className="station" aria-hidden="true">
-          <GearyMini driver={driver} className="station-geary" />
-          <i className="plinth" />
-        </div>
-
-        <Cog className="cog-a" />
-        <Cog className="cog-b" />
-        <Cog className="cog-c" />
-
-        {LINES.map((line, k) => (
-          <div key={line.key} className={`line line-${line.key}`} style={{ gridRow: k ? 4 : 2 }}>
-            <ul className="cargo" aria-label={line.label}>
-              {line.people.map((p) => (
-                <Member key={p[0]} person={p} i={n++} />
+          <div className="kc-nav" onPointerEnter={pause} onPointerLeave={resume}>
+            <p className="kc-now">
+              <b>{tiersOf(people)}</b>
+              <span>
+                {set * 3 + 1}–{set * 3 + people.length} of {TEAM.length}
+              </span>
+            </p>
+            <div className="kc-dots" ref={dotsRef} {...swipeHandlers}>
+              {SETS.map((g, k) => (
+                <button
+                  key={k}
+                  type="button"
+                  className={k === set ? "on" : k < set ? "done" : ""}
+                  aria-label={`Show ${g.map((m) => first(m.name)).join(", ")}`}
+                  aria-current={k === set ? "true" : undefined}
+                  onClick={() => go(k)}
+                >
+                  <i />
+                </button>
               ))}
-            </ul>
-            <div className="belt" aria-hidden="true">
-              <i className="belt-top">
-                <i className="tread" />
-              </i>
-              <i className="belt-side">
-                {Array.from({ length: 14 }, (_, r) => (
-                  <b key={r} />
-                ))}
-              </i>
+            </div>
+            <div className="kc-controls">
+              <button type="button" className="icon-btn glass" aria-label="Previous three" onClick={() => go(set - 1)}>
+                <ArrowLeft />
+              </button>
+              <button
+                type="button"
+                className="icon-btn glass"
+                aria-label={playing ? "Pause the keychain" : "Play the keychain"}
+                onClick={() => setPlaying((p) => !p)}
+              >
+                {playing ? <Pause /> : <Play />}
+              </button>
+              <button type="button" className="icon-btn glass" aria-label="Next three" onClick={() => go(set + 1)}>
+                <Arrow />
+              </button>
             </div>
           </div>
-        ))}
+
+          <div className="team-photos" aria-label="PMC photos">
+            <figure className="team-pic">
+              <img src={PHOTOS.group.src} alt={PHOTOS.group.alt} loading="lazy" />
+              <figcaption>The whole crew</figcaption>
+            </figure>
+            <figure className="team-pic">
+              <img src={PHOTOS.event.src} alt={PHOTOS.event.alt} loading="lazy" />
+              <figcaption>Event day</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div className="kc-col">
+          <div
+            className={`kc-stage${out ? " is-out" : ""}`}
+            ref={stageRef}
+            tabIndex={0}
+            aria-label="The team keychain. Drag or use the arrow keys to twist it; drag the ring to swing it."
+            onPointerEnter={pause}
+            onPointerLeave={resume}
+          >
+            <div className="kc-rig" ref={rigRef}>
+              <div className="kc-ring" data-ring="" aria-hidden="true" />
+              <svg className="kc-charm" viewBox="0 0 200 200" aria-hidden="true" data-ring="">
+                <path d={CHARM} />
+                <circle cx="100" cy="100" r="30" />
+              </svg>
+              {STRANDS.map((st, i) => (
+                <div key={i} className="kc-strand" hidden={!people[i]}>
+                  <div className="kc-chain" aria-hidden="true">
+                    {Array.from({ length: st.links }, (_, j) => (
+                      <i key={j} className={j % 2 ? "side" : ""} />
+                    ))}
+                  </div>
+                  <div className="kc-hang" style={{ top: st.links * LINK }}>
+                    {people[i] && <Card key={people[i].name} m={people[i]} />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="kc-hint" aria-hidden="true" {...swipeHandlers}>
+            Swipe the dots to see the next three
+          </p>
+        </div>
       </div>
+
+      <details className="wrap team-all">
+        <summary>See the whole team ({TEAM.length})</summary>
+        <ul>
+          {TEAM.map((m) => (
+            <li key={m.name}>
+              <span className="ta-photo">{m.photo ? <img src={m.photo} alt="" loading="lazy" /> : initials(m.name)}</span>
+              <span>
+                <b>{m.name}</b>
+                <small>{m.role}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </details>
     </section>
   );
 }

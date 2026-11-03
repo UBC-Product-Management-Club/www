@@ -7,9 +7,7 @@ import { LINKS } from "@/data/site";
 const ITEMS = [
   ["#events", "Events"],
   ["#about", "About"],
-  ["#offer", "What we offer"],
   ["#team", "Team"],
-  ["#advisors", "Advisors"],
   ["#join", "Get involved"],
 ] as const;
 

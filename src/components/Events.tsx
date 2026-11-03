@@ -1,33 +1,35 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useRef } from "react";
 import { EVENTS, type EventSticker } from "@/data/site";
 import { StickerArt, STICKER_SIZE } from "./StickerArt";
 import { useMedia } from "@/lib/motion";
 
-/** Resting spots on the board (desktop): left %, top %, tilt deg. */
+/** Resting spots on the board (desktop): left %, top %, tilt deg. Three above the title, three below. */
 const SPOTS: Record<EventSticker["id"], [number, number, number]> = {
-  getaway: [4, 7, -7],
-  conference: [40, 2, 4],
-  jackpot: [77, 9, 11],
-  heist: [8, 66, 8],
-  sprint: [44, 69, -5],
-  night: [71, 67, -6],
+  getaway: [4, 10, -7],
+  conference: [41, 7, 3],
+  jackpot: [78, 11, 8],
+  heist: [9, 64, 6],
+  sprint: [44, 68, -4],
+  night: [74, 63, -6],
 };
 
 /** Rounder stickers need a deeper fold before their edge reaches the corner. */
-const PEEL: Partial<Record<EventSticker["id"], number>> = { jackpot: 0.5, sprint: 0.46, night: 0.42 };
+const PEEL: Partial<Record<EventSticker["id"], number>> = { jackpot: 0.5, conference: 0.5, night: 0.4 };
 
 let topZ = 10;
 
-function Sticker({ ev, draggable }: { ev: EventSticker; draggable: boolean }) {
+function Snap({ ev, board }: { ev: EventSticker; board: boolean }) {
   const ref = useRef<HTMLElement>(null);
   const state = useRef({ x: 0, y: 0, start: { x: 0, y: 0, px: 0, py: 0 }, active: false, moved: false });
   const [left, top, tilt] = SPOTS[ev.id];
   const [w, h] = STICKER_SIZE[ev.id];
 
+  const set = (k: string, v: string) => ref.current!.style.setProperty(k, v);
   const onDown = (e: React.PointerEvent) => {
-    if (!draggable || e.button !== 0) return;
+    if (!board || e.button !== 0) return;
     const s = state.current;
     s.active = true;
     s.moved = false;
@@ -37,21 +39,33 @@ function Sticker({ ev, draggable }: { ev: EventSticker; draggable: boolean }) {
   };
   const onMove = (e: React.PointerEvent) => {
     const s = state.current;
-    if (!s.active) return;
+    const el = ref.current!;
+    if (!s.active) {
+      // the polaroid tips toward the pointer, like a print you're holding up to the light
+      if (e.pointerType !== "mouse") return;
+      const r = el.getBoundingClientRect();
+      set("--rx", `${(((e.clientY - r.top) / r.height - 0.5) * -16).toFixed(1)}deg`);
+      set("--ry", `${(((e.clientX - r.left) / r.width - 0.5) * 20).toFixed(1)}deg`);
+      return;
+    }
     const dx = e.clientX - s.start.px, dy = e.clientY - s.start.py;
     if (!s.moved && Math.hypot(dx, dy) < 6) return;
-    if (!s.moved) ref.current!.classList.add("dragging");
+    if (!s.moved) el.classList.add("dragging");
     s.moved = true;
     s.x = s.start.x + dx;
     s.y = s.start.y + dy;
-    ref.current!.style.setProperty("--x", `${s.x}px`);
-    ref.current!.style.setProperty("--y", `${s.y}px`);
-    ref.current!.style.setProperty("--lean", `${Math.max(-12, Math.min(12, (e.movementX || 0) * 0.8))}deg`);
+    set("--x", `${s.x}px`);
+    set("--y", `${s.y}px`);
+    set("--lean", `${Math.max(-12, Math.min(12, (e.movementX || 0) * 0.8))}deg`);
   };
   const onUp = () => {
     state.current.active = false;
     ref.current!.classList.remove("dragging");
-    ref.current!.style.setProperty("--lean", "0deg");
+    set("--lean", "0deg");
+  };
+  const onLeave = () => {
+    set("--rx", "0deg");
+    set("--ry", "0deg");
   };
   const onClick = (e: React.MouseEvent) => {
     if (state.current.moved) {
@@ -71,27 +85,42 @@ function Sticker({ ev, draggable }: { ev: EventSticker; draggable: boolean }) {
 
   const body = (
     <>
-      <span className="sticker-face">
-        <StickerArt id={ev.id} uid={`${ev.id}-f`} />
-      </span>
-      <span className="sticker-flap" aria-hidden="true">
-        <span className="sticker-back">
-          <StickerArt id={ev.id} uid={`${ev.id}-b`} />
+      <span className="snap-print">
+        <span className="snap-photo">
+          {ev.poster ? (
+            <img src={ev.poster} alt="" loading="lazy" decoding="async" draggable={false} />
+          ) : (
+            <span className="snap-developing">
+              <span>{ev.href ? "Photos after the event" : "Photos soon"}</span>
+            </span>
+          )}
+        </span>
+        <span className="snap-caption">
+          <b>{ev.name}</b>
+          <span>{ev.when}</span>
         </span>
       </span>
-      <span className="sticker-tag">
-        <b>{ev.when}</b> <span className="tag-blurb">{ev.blurb}</span>
+      <span className="sticker" aria-hidden="true">
+        <span className="sticker-face">
+          <StickerArt id={ev.id} uid={`${ev.id}-f`} />
+        </span>
+        <span className="sticker-flap">
+          <span className="sticker-back">
+            <StickerArt id={ev.id} uid={`${ev.id}-b`} />
+          </span>
+        </span>
       </span>
     </>
   );
 
   const common = {
-    className: `sticker${ev.href ? "" : " soon"}`,
+    className: `snap${ev.href ? "" : " soon"}`,
     style,
     onPointerDown: onDown,
     onPointerMove: onMove,
     onPointerUp: onUp,
     onPointerCancel: onUp,
+    onPointerLeave: onLeave,
     onClick,
   };
 
@@ -107,19 +136,17 @@ function Sticker({ ev, draggable }: { ev: EventSticker; draggable: boolean }) {
 }
 
 export default function Events() {
-  const board = useMedia("(min-width: 960px) and (pointer: fine)");
+  const board = useMedia("(min-width: 1000px) and (pointer: fine)");
   return (
     <section className="events" id="events" aria-labelledby="events-h">
       <div className={`events-board${board ? " is-board" : ""}`}>
         <div className="events-title">
           <h2 id="events-h">Events</h2>
-          <p>
-            {board ? "Peel, drag and rearrange. Click a sticker to open its event." : "Our flagship events. Tap a sticker to open its event."}
-          </p>
+          <p>{board ? "Peel, drag and rearrange. Click a sticker to open its event." : "Our flagship events. Tap a sticker to open its event."}</p>
         </div>
-        <div className="stickers">
+        <div className="snaps">
           {EVENTS.map((ev) => (
-            <Sticker key={ev.id} ev={ev} draggable={board} />
+            <Snap key={ev.id} ev={ev} board={board} />
           ))}
         </div>
       </div>

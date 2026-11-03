@@ -1,6 +1,63 @@
-import { LINKS } from "@/data/site";
+"use client";
+/* eslint-disable @next/next/no-img-element */
+
+import { useRef, useState } from "react";
+import { LINKS, LOGOS, img } from "@/data/site";
 import GearyStage from "./Geary";
 import { Arrow } from "./icons";
+
+/** Keyboard rows, staggered like a real board: five, five, then four and a space bar. */
+const ROWS = [LOGOS.slice(0, 5), LOGOS.slice(5, 10), LOGOS.slice(10, 14)];
+const SPACE = LOGOS[14];
+
+function Keyboard() {
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState<string>(LOGOS[0][0]);
+
+  // the board leans toward the pointer; every key presses down under it
+  const tilt = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const b = boardRef.current!;
+    b.style.setProperty("--tx", `${(((e.clientY - r.top) / r.height - 0.5) * -8).toFixed(1)}deg`);
+    b.style.setProperty("--ty", `${(((e.clientX - r.left) / r.width - 0.5) * 10).toFixed(1)}deg`);
+  };
+  const flat = () => {
+    boardRef.current!.style.setProperty("--tx", "0deg");
+    boardRef.current!.style.setProperty("--ty", "0deg");
+  };
+
+  const cap = ([name, file]: [string, string], wide = false) => (
+    <li key={name} className={`cap${wide ? " wide" : ""}`} onPointerEnter={() => setShown(name)}>
+      <span className="cap-top">
+        <img src={img(file, 256)} alt={name} loading="lazy" draggable={false} />
+      </span>
+    </li>
+  );
+
+  return (
+    <div className="keys">
+      <div className="keys-copy">
+        <h3 id="keys-h">PMC members have worked at</h3>
+        <p className="keys-screen" aria-hidden="true">
+          <i />
+          <span key={shown}>{shown}</span>
+        </p>
+      </div>
+      <div className="keys-view" onPointerMove={tilt} onPointerLeave={flat}>
+        <div className="keys-board" ref={boardRef}>
+          <ul aria-labelledby="keys-h">
+            {ROWS.map((row) => row.map((l) => cap(l)))}
+            <li className="cap mod" aria-hidden="true">
+              <span className="cap-top">PMC</span>
+            </li>
+            {cap(SPACE, true)}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function GetInvolved() {
   return (
@@ -36,6 +93,9 @@ export default function GetInvolved() {
           </div>
           <GearyStage label="Geary, the PMC mascot, in 3D. Drag or use the arrow keys to turn Geary, plus and minus to zoom, Enter to spin the gear." />
         </div>
+      </div>
+      <div className="wrap">
+        <Keyboard />
       </div>
     </section>
   );
