@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Donald Lee",
+  "team": "Tech",
+  "role": "VP Technology",
+  "emoji": null,
+  "photo": "donald-lee.webp",
+  "url": "https://www.linkedin.com/in/donald-k-lee/",
+  "order": 1
+}

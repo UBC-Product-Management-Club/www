@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Kezia Rijadi",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": "kezia-rijadi.webp",
+  "url": "https://www.linkedin.com/in/keziar",
+  "order": 4
+}

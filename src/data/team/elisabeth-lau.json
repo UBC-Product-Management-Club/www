@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Elisabeth Lau",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": "elisabeth-lau.webp",
+  "url": "https://www.linkedin.com/in/elisabeth-lau",
+  "order": 1
+}

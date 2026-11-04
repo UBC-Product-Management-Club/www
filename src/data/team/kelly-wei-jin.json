@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Kelly Wei Jin",
+  "team": "Marketing",
+  "role": "Marketing Director",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/kellyw13",
+  "order": 5
+}

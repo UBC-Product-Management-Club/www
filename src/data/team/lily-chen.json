@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Lily Chen",
+  "team": "Marketing",
+  "role": "Media Director",
+  "emoji": "🫯",
+  "photo": null,
+  "url": "https://www.linkedin.com/in/lily-chen-yl",
+  "order": 7
+}

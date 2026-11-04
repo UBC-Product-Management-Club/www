@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Fred Austin",
+  "team": "Marketing",
+  "role": "Design Director",
+  "emoji": null,
+  "photo": "fred-austin.webp",
+  "url": "https://fredaustin.ca",
+  "order": 6
+}

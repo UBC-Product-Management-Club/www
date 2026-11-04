@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Alexi Manning",
+  "team": "Tech",
+  "role": "Product Designer",
+  "emoji": null,
+  "photo": "alexi-manning.webp",
+  "url": "https://www.linkedin.com/in/aleximanning",
+  "order": 4
+}

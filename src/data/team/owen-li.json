@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Owen Li",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/owenzyli",
+  "order": 6
+}

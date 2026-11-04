@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Sergio Lopez",
+  "team": "Finance",
+  "role": "Finance Director",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/sergiodalopez/",
+  "order": 2
+}

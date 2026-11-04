@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Min Li Wang",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": "min-li-wang.webp",
+  "url": "https://www.linkedin.com/in/minliw/",
+  "order": 5
+}

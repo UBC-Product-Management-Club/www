@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Kashish Garg",
+  "team": "Tech",
+  "role": "Developer",
+  "emoji": null,
+  "photo": "kashish-garg.webp",
+  "url": "https://www.linkedin.com/in/kashishgarg1/",
+  "order": 2
+}

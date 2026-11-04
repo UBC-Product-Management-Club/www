@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Abby Racho",
+  "team": "Events",
+  "role": "Events Director",
+  "emoji": "🥂",
+  "photo": null,
+  "url": "https://www.linkedin.com/in/abbyracho",
+  "order": 6
+}

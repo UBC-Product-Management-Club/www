@@ -199,6 +199,7 @@ const CURSORS = [
   { who: "PM", color: "#d25fa6" },
   { who: "Design", color: "#8b9cf2" },
   { who: "Eng", color: "#a97fdc" },
+  { who: "Business", color: "#e4405e" },
 ];
 
 export function Cursors() {

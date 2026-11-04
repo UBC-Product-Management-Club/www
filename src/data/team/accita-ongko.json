@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Accita Ongko",
+  "team": "Partnerships",
+  "role": "Mentor Outreach Director",
+  "emoji": "🐒",
+  "photo": "accita-ongko.webp",
+  "url": "https://www.linkedin.com/in/accitadeviongko/",
+  "order": 5
+}

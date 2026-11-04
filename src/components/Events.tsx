@@ -127,7 +127,7 @@ function Snap({ ev, board }: { ev: EventSticker; board: boolean }) {
   };
 
   return ev.href ? (
-    <a {...common} ref={ref as React.Ref<HTMLAnchorElement>} href={ev.href} aria-label={`${ev.name}, ${ev.when}: ${ev.blurb}. Open the event page`} draggable={false}>
+    <a {...common} ref={ref as React.Ref<HTMLAnchorElement>} href={ev.href} aria-label={`${ev.name}, ${ev.when}: ${ev.blurb}. ${ev.id === "getaway" ? "Open the recap on Instagram" : "Open the event page"}`} draggable={false} {...(ev.href.startsWith("http") && !ev.href.includes("ubcpmc.com") ? { target: "_blank", rel: "noopener" } : {})}>
       {body}
     </a>
   ) : (

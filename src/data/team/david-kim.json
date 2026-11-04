@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "David Kim",
+  "team": "Events",
+  "role": "Events Director",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/dakim13/",
+  "order": 2
+}

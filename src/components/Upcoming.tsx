@@ -49,12 +49,16 @@ export default function Upcoming() {
 
   return (
     <section className="upcoming" id="upcoming" aria-labelledby="up-h">
+      <div className="wrap up-head">
+        <p className="up-open">
+          <i aria-hidden="true" />
+          <span className="sr">{live ? "Happening now" : "Registration open"}</span>
+        </p>
+        <h2 id="up-h">Sign up for our upcoming event</h2>
+      </div>
       <div className="wrap up-grid">
         <div className="up-main">
-          <h2 id="up-h" className="up-name">
-            <span className="sr">Up next: </span>
-            {ev.name}
-          </h2>
+          <h3 className="up-name">{ev.name}</h3>
           <p className="up-meta">
             <time dateTime={ev.start.slice(0, 10)}>{ev.dates}</time>
             <span aria-hidden="true">·</span>

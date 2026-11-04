@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Brandon Jong",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": "brandon-jong.webp",
+  "url": "https://www.linkedin.com/in/brandon-jong/",
+  "order": 8
+}

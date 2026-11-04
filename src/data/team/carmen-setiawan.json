@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Carmen Setiawan",
+  "team": "Marketing",
+  "role": "Design Director",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/carmen-laeticia-setiawan-20b173395",
+  "order": 8
+}

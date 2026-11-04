@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Jenny Lan",
+  "team": "Marketing",
+  "role": "Media Director",
+  "emoji": null,
+  "photo": null,
+  "url": null,
+  "order": 4
+}

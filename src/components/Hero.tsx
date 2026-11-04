@@ -5,8 +5,9 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { gearOutline } from "@/lib/gear";
 import { loadGeary, type GearyRig } from "@/lib/geary";
-import { clamp01, easeInOut, range, sectionProgress } from "@/lib/motion";
+import { clamp01, easeInOut, range } from "@/lib/motion";
 import { LINKS } from "@/data/site";
+import { asset } from "@/lib/asset";
 import { Arrow } from "./icons";
 
 const RAMP = ["#8b9cf2", "#a97fdc", "#d25fa6", "#e4405e"].map((c) => new THREE.Color(c));
@@ -54,17 +55,22 @@ const FLOAT: [number, number, number, number, number, number][] = [
 ];
 
 const easeIn = (x: number) => x * x * x;
+/** The event pictures in the eye: height ÷ width, and where the EVENTS title sits down them (0–1). Retake if Events changes. */
+const EYE_SHOT = { desk: { aspect: 0.7, title: 0.476 }, phone: { aspect: 3.059, title: 0.0735 } };
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasHost = useRef<HTMLDivElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
+  const worldRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const section = sectionRef.current!;
     const host = canvasHost.current!;
     const portal = portalRef.current!;
+    const world = worldRef.current!;
+    const pin = section.querySelector<HTMLElement>(".hero-stage")!;
     const copy = copyRef.current!;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -118,13 +124,17 @@ export default function Hero() {
     scene.add(stage);
 
     let rig: GearyRig | null = null;
+    let gearyW = 2; // Geary's width in world units, measured once the model loads
     let alive = true;
     let bornAt = -1;
     loadGeary({ reduce }).then(
       (r) => {
         if (!alive) return r.dispose();
         rig = r;
+        // measured before it joins the (popping-in, near-zero scale) stage, so the size is Geary's own
+        gearyW = new THREE.Box3().setFromObject(r.root).getSize(new THREE.Vector3()).x || 2;
         body.add(r.root);
+        place();
         bornAt = performance.now();
         host.dataset.status = "ready";
       },
@@ -186,6 +196,24 @@ export default function Hero() {
     window.addEventListener("pointermove", look, { passive: true });
 
     let w = 0, h = 0, wide = true;
+    // where Geary stands on desktop: inside the same centred column as the headline, right-aligned to it, so the
+    // two read as one composition at any width instead of Geary drifting to the window's edge on wide screens
+    const mark = { x: 0, scale: 1 };
+    const place = () => {
+      if (!wide) return;
+      const pad = parseFloat(getComputedStyle(copy).paddingRight) || 0;
+      const colLeft = copy.offsetLeft + pad;
+      const colRight = copy.offsetLeft + copy.clientWidth - pad;
+      const head = copy.querySelector("h1") as HTMLElement | null;
+      const textRight = colLeft + Math.min(head?.offsetWidth ?? 560, 560) + 24;
+      const pxPerUnit = h / (2 * 5.4 * Math.tan(THREE.MathUtils.degToRad(15)));
+      const want = gearyW * pxPerUnit * 1.08; // a little room for the bob and the turn
+      const room = Math.max(0, colRight - textRight);
+      mark.scale = Math.max(0.6, Math.min(1, room / want));
+      const cx = colRight - (want * mark.scale) / 2;
+      const halfW = 5.4 * Math.tan(THREE.MathUtils.degToRad(15)) * camera.aspect;
+      mark.x = (cx / w) * 2 * halfW - halfW;
+    };
     const resize = () => {
       w = host.clientWidth;
       h = host.clientHeight;
@@ -193,7 +221,9 @@ export default function Hero() {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      place();
     };
+    document.fonts?.ready.then(() => alive && place());
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(host);
@@ -218,22 +248,25 @@ export default function Hero() {
       last = now;
       if (!visible || document.hidden) return;
 
-      const p = reduce ? 0 : sectionProgress(section);
+      // progress against the pinned stage itself, so the dive ends exactly as the real events reach the top
+      const box = section.getBoundingClientRect();
+      const span = section.offsetHeight - pin.offsetHeight;
+      const p = reduce || span <= 0 ? 0 : clamp01(-box.top / span);
+      // the stage steps aside at the very end, revealing the real section right where its copy was
+      pin.classList.toggle("gone", !reduce && p >= 0.999);
       const centre = easeInOut(range(p, 0, 0.3)); // Geary steps to centre stage
-      const dive = range(p, 0.2, 0.97); // then the camera dives into Geary's eye
+      const dive = range(p, 0.15, 1); // then the camera dives into Geary's eye
       const scatter = easeIn(range(p, 0.05, 0.6)); // the floating gears fly past the camera
 
-      // Geary's mark on stage: right of the copy on desktop, above it on phones
-      // half the visible width at Geary's depth; Geary stands halfway out, clear of the headline
-      const halfW = (wide ? 5.4 : 7.2) * Math.tan(THREE.MathUtils.degToRad(15)) * camera.aspect;
-      const homeX = wide ? halfW * 0.56 : 0;
+      // Geary's mark on stage: right of the copy on desktop (see place), above it on phones
+      const homeX = wide ? mark.x : 0;
       const homeY = wide ? -0.04 : 0.98;
       stage.position.set(homeX * (1 - centre), homeY * (1 - centre), 0);
       floatGroup.position.copy(stage.position);
       const born = bornAt < 0 ? 0 : clamp01((now - bornAt) / 900);
       // pop in with a little overshoot once the model arrives
       const pop = born < 1 ? 1 + Math.sin(born * Math.PI) * 0.12 * (1 - born) - (1 - born) * 0.9 : 1;
-      stage.scale.setScalar((wide ? 1 : THREE.MathUtils.lerp(0.7, 1, centre)) * Math.max(0.001, pop));
+      stage.scale.setScalar(THREE.MathUtils.lerp(wide ? mark.scale : 0.7, 1, centre) * Math.max(0.001, pop));
 
       if (!drag) {
         view.yaw += view.vyaw;
@@ -301,8 +334,18 @@ export default function Hero() {
           }
           const grow = 1 + range(dive, 0.82, 0.97) * 3; // finish the cover once the eye fills the screen
           const rx = ((x1 - x0) / 2) * 0.9 * grow, ry = ((y1 - y0) / 2) * 0.9 * grow;
-          portal.style.clipPath = `ellipse(${rx.toFixed(1)}px ${ry.toFixed(1)}px at ${((x0 + x1) / 2).toFixed(1)}px ${((y0 + y1) / 2).toFixed(1)}px)`;
+          const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+          portal.style.clipPath = dive > 0.995 ? "none" : `ellipse(${rx.toFixed(1)}px ${ry.toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)`;
           portal.style.opacity = String(range(dive, 0.35, 0.55));
+
+          // a flat picture of the events section lives inside the eye: small with its title centred in the pupil,
+          // growing until it fills the window, then the stage fades to the real section. A picture, because a
+          // live copy re-drew dozens of images and shadows every frame on top of the 3D scene
+          const shot = w >= 1000 ? EYE_SHOT.desk : EYE_SHOT.phone;
+          const tx = w / 2, ty = w * shot.aspect * shot.title;
+          const k = Math.pow(range(dive, 0.35, 1), 2.4);
+          const s = THREE.MathUtils.lerp(0.22, 1, k);
+          world.style.transform = `translate3d(${((cx - tx * s) * (1 - k)).toFixed(1)}px, ${((cy - ty * s) * (1 - k)).toFixed(1)}px, 0) scale(${s.toFixed(4)})`;
         } else portal.style.opacity = "0";
       } else {
         camera.position.set(0, 0, camZ);
@@ -315,7 +358,7 @@ export default function Hero() {
       copy.style.transform = `translate3d(0, ${-fade * 30}px, 0) perspective(900px) rotateX(${fade * 22}deg) scale(${1 - fade * 0.08})`;
       copy.style.filter = fade > 0 ? `blur(${(fade * 8).toFixed(1)}px)` : "";
       copy.style.visibility = fade >= 1 ? "hidden" : "visible";
-      renderer.render(scene, camera);
+      if (dive < 0.995) renderer.render(scene, camera); // nothing to draw once the eye covers the screen
     };
     raf = requestAnimationFrame(frame);
 
@@ -358,7 +401,14 @@ export default function Hero() {
             </a>
           </div>
         </div>
-        <div className="portal" ref={portalRef} aria-hidden="true" />
+        <div className="portal" ref={portalRef} aria-hidden="true">
+          <div className="portal-world" ref={worldRef}>
+            <picture>
+              <source media="(max-width: 999px)" srcSet={asset("/events/preview-phone.webp")} />
+              <img src={asset("/events/preview.webp")} alt="" decoding="async" draggable={false} />
+            </picture>
+          </div>
+        </div>
       </div>
     </section>
   );

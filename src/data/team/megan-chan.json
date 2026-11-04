@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Megan Chan",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": "megan-chan.webp",
+  "url": "https://www.linkedin.com/in/meganphchan/",
+  "order": 2
+}

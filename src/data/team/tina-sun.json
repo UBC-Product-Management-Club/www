@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Tina Sun",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": null,
+  "url": null,
+  "order": 7
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Jagathi Moturi",
+  "team": "Partnerships",
+  "role": "Mentor Outreach Director",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/jagathi-moturi",
+  "order": 4
+}

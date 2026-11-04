@@ -38,7 +38,7 @@ function Keyboard() {
   return (
     <div className="keys">
       <div className="keys-copy">
-        <h3 id="keys-h">PMC members have worked at</h3>
+        <h2 id="keys-h">PMC members have worked at</h2>
         <p className="keys-screen" aria-hidden="true">
           <i />
           <span key={shown}>{shown}</span>
@@ -59,27 +59,41 @@ function Keyboard() {
   );
 }
 
+/** Three ways in, as boarding passes: who it's for, the ask, a line on what you get, and a stub with the action. */
+const TICKETS = [
+  { gate: "Students", title: "Become a member", body: "Event invites, mentorship and a student network that’s already in the industry.", cta: "Join", href: LINKS.member },
+  { gate: "Students", title: "Volunteer with us", body: "Help run our events and build the club from the inside.", cta: "Apply", href: LINKS.volunteer },
+  { gate: "Companies & mentors", title: "Partner with PMC", body: "Sponsor an event, speak at one, or mentor our members.", cta: "Email", href: `${LINKS.partnerships}?subject=Partnering%20with%20UBC%20PMC` },
+];
+
 export default function GetInvolved() {
   return (
     <section className="join board pink" id="join" aria-labelledby="join-h">
+      <div className="wrap">
+        <Keyboard />
+      </div>
       <div className="wrap join-grid">
         <div className="join-copy">
+          <p className="join-kicker">Get involved</p>
           <h2 id="join-h">Launch your product career.</h2>
-          <p className="lede">Get event invites, mentorship and a student network that’s already in the industry.</p>
-          <div className="ctas">
-            <a className="btn primary" href={LINKS.member}>
-              Become a member <Arrow />
-            </a>
-            <a className="btn secondary" href={LINKS.volunteer}>
-              Volunteer with us
-            </a>
-          </div>
-          <p className="partner">
-            <span>For companies and mentors:</span>
-            <a href={`${LINKS.partnerships}?subject=Sponsoring%20UBC%20PMC`}>Sponsor PMC</a>
-            <a href={`${LINKS.partnerships}?subject=Speaking%20at%20a%20UBC%20PMC%20event`}>Speak at an event</a>
-            <a href={LINKS.partnerships}>partnerships@ubcpmc.com</a>
-          </p>
+          <ul className="tickets">
+            {TICKETS.map((t, k) => (
+              <li key={t.title} style={{ "--k": k } as React.CSSProperties}>
+                <a className="ticket" href={t.href}>
+                  <span className="ticket-main">
+                    <small>{t.gate}</small>
+                    <b>{t.title}</b>
+                    <span>{t.body}</span>
+                  </span>
+                  <span className="ticket-stub" aria-hidden="true">
+                    <small>PMC</small>
+                    <b>{t.cta}</b>
+                    <Arrow />
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="geary-col">
@@ -89,9 +103,6 @@ export default function GetInvolved() {
           </div>
           <GearyStage label="Geary, the PMC mascot, in 3D. Drag or use the arrow keys to turn Geary, plus and minus to zoom, Enter to spin the gear." />
         </div>
-      </div>
-      <div className="wrap">
-        <Keyboard />
       </div>
     </section>
   );

@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Kanwar Sekhon",
+  "team": "Tech",
+  "role": "Developer",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/kanwar-sekhon",
+  "order": 7
+}

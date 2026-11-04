@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Eileen Wang",
+  "team": "Partnerships",
+  "role": "VP Partnerships",
+  "emoji": null,
+  "photo": "eileen-wang.webp",
+  "url": "https://www.linkedin.com/in/eileen-wang-105580326/",
+  "order": 1
+}

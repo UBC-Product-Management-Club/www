@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Steven Zhu",
+  "team": "Partnerships",
+  "role": "Partnerships",
+  "emoji": null,
+  "photo": null,
+  "url": null,
+  "order": 2
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Jonathan Ysonza",
+  "team": "Marketing",
+  "role": "Media Director",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/jonathan-ysonza-9747a3337/",
+  "order": 3
+}

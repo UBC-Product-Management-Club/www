@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Sophia Li",
+  "team": "Events",
+  "role": "Events Director",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/sophiali4125/",
+  "order": 4
+}

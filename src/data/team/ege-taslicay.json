@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Ege Taslicay",
+  "team": "Tech",
+  "role": "Developer",
+  "emoji": null,
+  "photo": null,
+  "url": null,
+  "order": 6
+}

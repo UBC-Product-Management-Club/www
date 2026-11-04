@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Kat Mrzljak",
+  "team": "Co-Presidents",
+  "role": "Co-President",
+  "emoji": null,
+  "photo": "kat-mrzljak.webp",
+  "url": null,
+  "order": 2
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Jaymus Choi",
+  "team": "Finance",
+  "role": "VP Finance",
+  "emoji": null,
+  "photo": null,
+  "url": "https://www.linkedin.com/in/jaymuschoi/",
+  "order": 1
+}

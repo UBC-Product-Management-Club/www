@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Claire Zhang",
+  "team": "Events",
+  "role": "VP Events",
+  "emoji": null,
+  "photo": "claire-zhang.webp",
+  "url": "https://www.linkedin.com/in/claire-zhang-985410301/",
+  "order": 1
+}

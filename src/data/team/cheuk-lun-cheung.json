@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Cheuk-Lun Cheung",
+  "team": "Marketing",
+  "role": "VP Media",
+  "emoji": null,
+  "photo": "cheuk-lun-cheung.webp",
+  "url": "https://www.linkedin.com/in/cheuk-lun-cheung",
+  "order": 2
+}

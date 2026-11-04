@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Jeffrey Xu",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": null,
+  "photo": "jeffrey-xu.webp",
+  "url": "https://www.linkedin.com/in/xu-jeffrey",
+  "order": 3
+}

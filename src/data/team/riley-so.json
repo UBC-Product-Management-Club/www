@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Riley So",
+  "team": "Community",
+  "role": "Community Director",
+  "emoji": null,
+  "photo": null,
+  "url": null,
+  "order": 2
+}

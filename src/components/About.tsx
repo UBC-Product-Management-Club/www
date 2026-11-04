@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { STATS } from "@/data/site";
 import { gearPath } from "@/lib/gear";
-import { easeOut, range, sectionProgress, useMedia } from "@/lib/motion";
+import { range, sectionProgress, useMedia } from "@/lib/motion";
 import { Cursors } from "./Playthings";
 
 const GEAR_D = gearPath(500, 500, 496);
@@ -14,27 +14,19 @@ const TABS = [
   { tab: "Members", slug: "members", per: 1, unit: "Each dot is one member." },
 ];
 const RAMP = ["#8b9cf2", "#a97fdc", "#d25fa6", "#e4405e"];
-/** Progress where the stat steps start and end, once the gear has zoomed out. */
-const STEP_FROM = 0.26, STEP_TO = 0.94;
+/** Progress where the stat steps start and end. */
+const STEP_FROM = 0.06, STEP_TO = 0.94;
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
-  const gearRef = useRef<HTMLDivElement>(null);
   const spinRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
-  const copyRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const scrolly = useMedia("(min-width: 960px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)");
 
   useEffect(() => {
     const section = sectionRef.current!;
-    const els = [gearRef, spinRef, statsRef, copyRef].map((r) => r.current!);
-    const [gear, spin, stats, copy] = els;
-    const reset = () =>
-      els.forEach((el) => {
-        el.style.removeProperty("transform");
-        el.style.removeProperty("opacity");
-      });
+    const spin = spinRef.current!;
+    const reset = () => spin.style.removeProperty("transform");
     reset();
     if (!scrolly) return reset;
 
@@ -52,15 +44,9 @@ export default function About() {
       const next = shown < 0 ? p : shown + (p - shown) * (1 - Math.exp(-dt * 14));
       if (Math.abs(next - shown) < 0.00002) return;
       shown = Math.abs(p - next) < 0.00005 ? p : next;
-      // the gear settles in from a little larger, then turns one tooth per stat
-      const out = easeOut(range(shown, 0, 0.22));
+      // everything is in place as the section arrives, so it never reads as still loading; the gear only turns
       const turn = range(shown, STEP_FROM, STEP_TO) * (STATS.length - 1);
-      gear.style.transform = `scale(${(1 + 0.5 * (1 - out)).toFixed(4)})`;
       spin.style.transform = `rotate(${(turn * 45 + shown * 12).toFixed(2)}deg)`;
-      stats.style.opacity = range(shown, 0.04, 0.18).toFixed(3);
-      const c = range(shown, 0.12, 0.26);
-      copy.style.opacity = c.toFixed(3);
-      copy.style.transform = `translate3d(0, ${((1 - c) * 30).toFixed(1)}px, 0)`;
       const step = Math.round(turn);
       setActive((a) => (a === step ? a : step));
     };
@@ -103,7 +89,7 @@ export default function About() {
       <div className="about-stage">
         <Cursors />
         <div className="about-gear-col">
-          <div className="about-gear" ref={gearRef} aria-hidden="true">
+          <div className="about-gear" aria-hidden="true">
             <i className="about-gear-shadow" />
             <div
               className="about-gear-spin"
@@ -128,7 +114,7 @@ export default function About() {
                 <circle cx="500" cy="500" r="330" fill="none" stroke="#fff" strokeOpacity=".22" strokeWidth="3" />
               </svg>
             </div>
-            <div className="about-stats" ref={statsRef}>
+            <div className="about-stats">
               {STATS.map((s, i) => (
                 <p key={s.label} className={i === active ? "on" : i < active ? "past" : ""}>
                   <b>{s.n}</b>
@@ -139,7 +125,7 @@ export default function About() {
           </div>
         </div>
 
-        <div className="about-copy" ref={copyRef}>
+        <div className="about-copy">
           <div className="about-text">
             <div>
               <h2 id="about-h">We demystify product management.</h2>

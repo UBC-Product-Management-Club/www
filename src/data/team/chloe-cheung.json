@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Chloe Cheung",
+  "team": "Co-Presidents",
+  "role": "Co-President",
+  "emoji": "💫",
+  "photo": "chloe-cheung.webp",
+  "url": "https://www.linkedin.com/in/chloecheungc/",
+  "order": 1
+}

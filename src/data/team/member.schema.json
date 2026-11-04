@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UBC PMC team member",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "team", "role"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string", "description": "Full name, as it should appear on the card." },
+    "team": {
+      "enum": ["Co-Presidents", "Community", "Events", "Finance", "Marketing", "Tech", "Partnerships", "Advisors"],
+      "description": "Which team's keychain the card hangs on."
+    },
+    "role": { "type": "string", "description": "Shown under the name. A role starting with \"VP\" hangs first on its team." },
+    "emoji": { "type": ["string", "null"], "description": "One emoji for the badge on the card. null shows a PMC gear." },
+    "photo": {
+      "type": ["string", "null"],
+      "description": "A square image in public/team (just the file name, e.g. \"jane-doe.webp\") or a full https:// URL. null shows initials."
+    },
+    "url": {
+      "type": ["string", "null"],
+      "description": "Where clicking the card goes: LinkedIn, a portfolio, a personal site. null makes the card not clickable."
+    },
+    "order": { "type": "number", "description": "Position within the team, lowest first (after the VP)." }
+  }
+}

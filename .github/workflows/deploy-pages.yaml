@@ -45,6 +45,17 @@ jobs:
           NEXT_OUTPUT: export
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
 
+      # Catch a build whose images or Geary model would 404 under the base path before it goes live
+      - name: Check asset paths
+        env:
+          BASE: ${{ steps.pages.outputs.base_path }}
+        run: |
+          set -e
+          test -f out/models/geary.glb
+          # images and the Geary model share asset(), so a prefixed <img> means the model URL is prefixed too
+          grep -q "src=\"$BASE/brand/pmc-logo" out/index.html || { echo "asset URLs are missing the '$BASE' prefix"; exit 1; }
+          echo "Assets are served under '$BASE/'"
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:

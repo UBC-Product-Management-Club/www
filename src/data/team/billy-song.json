@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Billy Song",
+  "team": "Events",
+  "role": "Events Director",
+  "emoji": "😼",
+  "photo": null,
+  "url": "https://www.linkedin.com/in/billy-song-ubc/",
+  "order": 3
+}
