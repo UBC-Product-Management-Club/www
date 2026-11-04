@@ -75,8 +75,11 @@ export default function Hero() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    // full-screen canvas: 1.5× is visually indistinguishable here and ~45% fewer pixels than 2×
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    // full-screen canvas: 1.5× is visually indistinguishable here and ~45% fewer pixels than 2×, and very wide
+    // windows stop at about 2400 pixels across. The dive drops to 1×: nothing reads that sharply at that speed
+    const sharpRatio = () => Math.min(window.devicePixelRatio, 1.5, 2400 / window.innerWidth);
+    renderer.setPixelRatio(sharpRatio());
+    let sharp = true;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     host.appendChild(renderer.domElement);
@@ -255,6 +258,12 @@ export default function Hero() {
       // the stage steps aside at the very end, revealing the real section right where its copy was
       pin.classList.toggle("gone", !reduce && p >= 0.999);
       const centre = easeInOut(range(p, 0, 0.3)); // Geary steps to centre stage
+      const still = p < 0.02;
+      if (still !== sharp) {
+        sharp = still;
+        renderer.setPixelRatio(still ? sharpRatio() : 1);
+        renderer.setSize(w, h, false);
+      }
       const dive = range(p, 0.15, 1); // then the camera dives into Geary's eye
       const scatter = easeIn(range(p, 0.05, 0.6)); // the floating gears fly past the camera
 
@@ -356,7 +365,6 @@ export default function Hero() {
       const fade = range(p, 0.02, 0.16);
       copy.style.opacity = String(1 - fade);
       copy.style.transform = `translate3d(0, ${-fade * 30}px, 0) perspective(900px) rotateX(${fade * 22}deg) scale(${1 - fade * 0.08})`;
-      copy.style.filter = fade > 0 ? `blur(${(fade * 8).toFixed(1)}px)` : "";
       copy.style.visibility = fade >= 1 ? "hidden" : "visible";
       if (dive < 0.995) renderer.render(scene, camera); // nothing to draw once the eye covers the screen
     };

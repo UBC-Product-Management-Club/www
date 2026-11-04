@@ -12,8 +12,8 @@ import { asset } from "@/lib/asset";
 const SETS: Member[][] = TEAMS.map((t) => TEAM.filter((m) => m.team === t)).filter((s) => s.length);
 /** A bigger team stays up a little longer, so there's time to read every card. */
 const holdFor = (n: number) => 3800 + n * 450;
-/** How long the cards take to fold back into the ring before the next team swaps in (ms). */
-const FOLD = 260;
+/** How long the keychain takes to fade out before the next team swaps in, and to fade back (ms). */
+const FOLD = 240;
 const LINK = 17; // px of chain per link
 /** The strands hang from here, just under the ring (px below the rig's origin). */
 const ORIGIN = 84;
@@ -151,14 +151,13 @@ export default function Team() {
   }));
   const strandsRef = useRef(strands);
 
-  /** Fold the cards back into the ring, swap in team k, and let them spring back out. */
+  /** Fade the keychain out, swap in team k, fade it back. The burst out of the ring only happens once, on arrival. */
   const go = (k: number) => {
     const L = live.current;
     const next = (k + SETS.length) % SETS.length;
     if (L.busy || next === L.set) return;
     L.busy = true;
     L.hold = 0;
-    L.spread = 0;
     setOut(true);
     window.setTimeout(() => {
       L.set = next;
@@ -166,7 +165,6 @@ export default function Team() {
       setSet(next);
       requestAnimationFrame(() => {
         setOut(false);
-        L.spread = 1;
         window.setTimeout(() => (L.busy = false), FOLD);
       });
     }, FOLD);
@@ -285,12 +283,9 @@ export default function Team() {
       const hangEls = rig.querySelectorAll<HTMLElement>(".kc-hang");
       const st = strandsRef.current;
 
-      // the fan: folds in fast when a team changes, then opens once on a soft spring and stays open
+      // the fan: opens once on a soft spring when the keychain first scrolls into view, and stays open
       if (reduce) s.sp = L.spread;
-      else if (L.spread === 0) {
-        s.sp = Math.max(0, s.sp - dt / (FOLD / 1000));
-        s.vsp = 0;
-      } else {
+      else if (L.spread > 0) {
         s.vsp += (34 * (1 - s.sp) - 10 * s.vsp) * dt;
         s.sp += s.vsp * dt;
       }
@@ -357,6 +352,46 @@ export default function Team() {
       stage.removeEventListener("keydown", key);
     };
   }, []);
+
+  // on phones the rail walks itself through the team, then on to the next; a touch hands it over to you for a moment
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail || !phone || !playing) return;
+    const items = [...rail.querySelectorAll<HTMLElement>(".kc-rail-item")];
+    const centre = (el: HTMLElement) => el.offsetLeft - (rail.clientWidth - el.offsetWidth) / 2;
+    let at = Math.max(0, items.findIndex((el) => el.hasAttribute("data-vp")));
+    let seen = 1, held = false, onScreen = false, resume = 0;
+    const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting), { threshold: 0.5 });
+    io.observe(rail);
+    const hold = () => {
+      held = true;
+      window.clearTimeout(resume);
+    };
+    const release = () => {
+      resume = window.setTimeout(() => {
+        held = false;
+        at = items.reduce((best, el, i) => (Math.abs(centre(el) - rail.scrollLeft) < Math.abs(centre(items[best]) - rail.scrollLeft) ? i : best), 0);
+      }, 3000);
+    };
+    rail.addEventListener("touchstart", hold, { passive: true });
+    rail.addEventListener("touchend", release, { passive: true });
+    rail.addEventListener("touchcancel", release, { passive: true });
+    const step = window.setInterval(() => {
+      if (held || !onScreen || document.hidden) return;
+      if (seen >= items.length) return goRef.current(live.current.set + 1);
+      at = (at + 1) % items.length;
+      seen++;
+      rail.scrollTo({ left: centre(items[at]), behavior: "smooth" });
+    }, 2400);
+    return () => {
+      window.clearInterval(step);
+      window.clearTimeout(resume);
+      io.disconnect();
+      rail.removeEventListener("touchstart", hold);
+      rail.removeEventListener("touchend", release);
+      rail.removeEventListener("touchcancel", release);
+    };
+  }, [phone, playing, set]);
 
   const pause = () => {
     live.current.paused = true;

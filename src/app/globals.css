@@ -425,6 +425,12 @@ main,
   height: calc(100svh + 70vh);
   pointer-events: none;
 }
+/* a wheel covers ground slower than a thumb flick, so desktop gets a much shorter dive */
+@media (min-width: 900px) {
+  .hero {
+    height: calc(100svh + 42vh);
+  }
+}
 .hero-stage {
   position: sticky;
   top: 0;
@@ -1326,6 +1332,13 @@ main,
 .kc-charm circle {
   fill: var(--ink);
 }
+/* between teams the keychain just fades */
+.kc-strand {
+  transition: opacity 0.24s ease-out;
+}
+.kc-stage.is-out .kc-strand {
+  opacity: 0;
+}
 .kc-strand {
   position: absolute;
   left: 0;
@@ -1383,7 +1396,6 @@ main,
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   overflow: hidden;
-  transition: opacity 0.18s ease-out, filter 0.18s ease-out, translate 0.18s ease-out;
 }
 .kc-face.front {
   position: relative;
@@ -1392,11 +1404,6 @@ main,
   padding: 24px 10px 14px;
   color: inherit;
   text-decoration: none;
-}
-.kc-stage.is-out .kc-face {
-  opacity: 0;
-  filter: blur(8px);
-  translate: 0 14px;
 }
 /* a card with a link lifts and glows under the pointer, and shows where it goes */
 a.kc-face {
