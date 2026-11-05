@@ -21,7 +21,7 @@ export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const spinRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  const scrolly = useMedia("(min-width: 960px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)");
+  const scrolly = useMedia("(min-width: 960px) and (min-height: 720px) and (prefers-reduced-motion: no-preference)");
 
   useEffect(() => {
     const section = sectionRef.current!;

@@ -7,14 +7,14 @@ import { StickerArt, STICKER_SIZE } from "./StickerArt";
 import { useMedia } from "@/lib/motion";
 import { asset } from "@/lib/asset";
 
-/** Resting spots on the board (desktop): left %, top %, tilt deg. Three above the title, three below. */
+/** Resting spots on the board (desktop): left %, top %, tilt deg. One loose row under the title, newest event first. */
 const SPOTS: Record<EventSticker["id"], [number, number, number]> = {
-  getaway: [4, 10, -7],
-  conference: [41, 7, 3],
-  jackpot: [78, 11, 8],
-  heist: [9, 64, 6],
-  sprint: [44, 68, -4],
-  night: [74, 63, -6],
+  jackpot: [1.5, 53, -6],
+  getaway: [18, 49, 3],
+  sprint: [34.5, 54, -3],
+  conference: [51, 49.5, 5],
+  heist: [67.5, 54, -4],
+  night: [84, 50, 5],
 };
 
 /** Rounder stickers need a deeper fold before their edge reaches the corner. */
@@ -22,7 +22,7 @@ const PEEL: Partial<Record<EventSticker["id"], number>> = { jackpot: 0.5, confer
 
 let topZ = 10;
 
-function Snap({ ev, board }: { ev: EventSticker; board: boolean }) {
+function Snap({ ev, board, z }: { ev: EventSticker; board: boolean; z: number }) {
   const ref = useRef<HTMLElement>(null);
   const state = useRef({ x: 0, y: 0, start: { x: 0, y: 0, px: 0, py: 0 }, active: false, moved: false });
   const [left, top, tilt] = SPOTS[ev.id];
@@ -82,6 +82,7 @@ function Snap({ ev, board }: { ev: EventSticker; board: boolean }) {
     "--w": `${w}px`,
     "--h": `${h}px`,
     "--pf": PEEL[ev.id] ?? 0.3,
+    zIndex: z, // each print sits over the next, so its sticker isn't hidden behind its neighbour
   } as React.CSSProperties;
 
   const body = (
@@ -147,8 +148,8 @@ export default function Events() {
           <p>{board ? "Peel, drag and rearrange. Click a sticker to open its event." : "Our flagship events. Tap a sticker to open its event."}</p>
         </div>
         <div className="snaps">
-          {EVENTS.map((ev) => (
-            <Snap key={ev.id} ev={ev} board={board} />
+          {EVENTS.map((ev, k) => (
+            <Snap key={ev.id} ev={ev} board={board} z={EVENTS.length - k} />
           ))}
         </div>
       </div>

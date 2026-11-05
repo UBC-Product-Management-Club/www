@@ -23,15 +23,15 @@ export type EventSticker = {
   poster?: string;
 };
 
-/** Each event lives in its own repo; stickers only link out. */
+/** Each event lives in its own repo; stickers only link out. Newest first: keep a new event at the top. */
 export const EVENTS: EventSticker[] = [
+  { id: "jackpot", name: "Product Jackpot", when: "Nov 21–22, 2026", blurb: "24-hour product challenge", href: "https://ubcpmc.com/productjackpot", poster: asset("/events/jackpot.webp") },
   // Getaway had no site of its own, so its sticker opens the Instagram recap. TODO: swap in the recap post's own URL.
   { id: "getaway", name: "Product Getaway", when: "Sep 2026", blurb: "See the recap on Instagram", href: "https://www.instagram.com/p/DeXKIRkJpRi/", poster: asset("/events/getaway.webp") },
-  { id: "jackpot", name: "Product Jackpot", when: "Nov 21–22, 2026", blurb: "24-hour product challenge", href: "https://ubcpmc.com/productjackpot", poster: asset("/events/jackpot.webp") },
-  { id: "night", name: "Product Night", when: "Oct 2025", blurb: "Keynotes, small-group chats and mentors", href: "https://ubcpmc.com/productnight", poster: img("gIrG8JM7zAiFYqI98Pbu588PXU.jpg", 640) },
-  { id: "heist", name: "Product Heist", when: "Nov 2025", blurb: "A 24-hour product challenge", href: "https://ubcpmc.com/productheist", poster: img("B0rBpxxJg0VYM53n9iPYj0JrLEc.jpg", 640) },
-  { id: "conference", name: "Product Conference", when: "Feb 2026", blurb: "Keynotes, workshops and panels", href: "https://ubcpmc.com/productconference", poster: img("YOTBvfm9wMwuyEbB9JVEWFAMHQ.png", 640) },
   { id: "sprint", name: "Product Sprint", when: "Mar 2026", blurb: "Our flagship two-week PM competition", href: "https://ubcpmc.com/productsprint", poster: img("mg8wks2Uk8WpPri365cVxWetC8.png", 640) },
+  { id: "conference", name: "Product Conference", when: "Feb 2026", blurb: "Keynotes, workshops and panels", href: "https://ubcpmc.com/productconference", poster: img("YOTBvfm9wMwuyEbB9JVEWFAMHQ.png", 640) },
+  { id: "heist", name: "Product Heist", when: "Nov 2025", blurb: "A 24-hour product challenge", href: "https://ubcpmc.com/productheist", poster: img("B0rBpxxJg0VYM53n9iPYj0JrLEc.jpg", 640) },
+  { id: "night", name: "Product Night", when: "Oct 2025", blurb: "Keynotes, small-group chats and mentors", href: "https://ubcpmc.com/productnight", poster: img("gIrG8JM7zAiFYqI98Pbu588PXU.jpg", 640) },
 ];
 
 export type Upcoming = {

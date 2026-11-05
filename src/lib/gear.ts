@@ -21,6 +21,10 @@ export function gearOutline(r = 1, spec: GearSpec = GEAR, arcSteps = 10): [numbe
   return pts;
 }
 
+/** A circular sub-path; with `fillRule="evenodd"` it punches a real hole in a gear, so the page shows through. */
+export const gearHole = (cx: number, cy: number, r: number) =>
+  ` M${cx + r} ${cy} A${r} ${r} 0 1 0 ${cx - r} ${cy} A${r} ${r} 0 1 0 ${cx + r} ${cy} Z`;
+
 /** SVG path for a gear centred on (cx, cy). */
 export function gearPath(cx: number, cy: number, r: number, spec: GearSpec = GEAR): string {
   return (

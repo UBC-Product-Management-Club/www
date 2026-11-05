@@ -1,10 +1,13 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import { LINKS, LOGOS, img } from "@/data/site";
-import GearyStage from "./Geary";
 import { Arrow } from "./icons";
+
+// three.js and the WebGL scene load on their own, with the stage's space held so nothing jumps when they arrive
+const GearyStage = dynamic(() => import("./Geary"), { ssr: false, loading: () => <div className="geary" /> });
 
 /** Keyboard rows, staggered like a real board: five, five, then four and a space bar. */
 const ROWS = [LOGOS.slice(0, 5), LOGOS.slice(5, 10), LOGOS.slice(10, 14)];

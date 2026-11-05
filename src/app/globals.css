@@ -4,12 +4,11 @@
   --c2: #a97fdc;
   --c3: #d25fa6;
   --c4: #e4405e;
-  --deep: linear-gradient(120deg, #5f6fdc 0%, #8a58cf 38%, #bf418c 72%, #d23350 100%);
+  --deep: linear-gradient(120deg, #5a54c9 0%, #7d48c4 38%, #b03a82 72%, #c92c49 100%);
   --bg: #fbf9fe;
   --surface: #fff;
   --tint: #f3effb;
   --ink: #1d1838;
-  --ink-2: #15112b;
   --navy: #282b56; /* the PMC poster navy, for the boards */
   --text: #47425f;
   --mute: #6b6584;
@@ -17,13 +16,24 @@
   --accent: #5a54c9;
   --on-ink: #f3effb;
   --on-ink-mute: #bdb6d8;
-  --shadow: 0 1px 2px rgba(29, 24, 56, 0.06), 0 14px 34px -14px rgba(29, 24, 56, 0.18);
   --head: var(--font-poppins), system-ui, sans-serif; /* ubcpmc.com sets everything in Poppins */
   --body: var(--font-poppins), system-ui, sans-serif;
   --gutter: clamp(20px, 5vw, 72px);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --gearmask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M79.3 22.7L84.7 3.2L115.3 3.2L120.7 22.7A80 80 0 0 1 140 30.7L157.6 20.7L179.3 42.4L169.3 60A80 80 0 0 1 177.3 79.3L196.8 84.7L196.8 115.3L177.3 120.7A80 80 0 0 1 169.3 140L179.3 157.6L157.6 179.3L140 169.3A80 80 0 0 1 120.7 177.3L115.3 196.8L84.7 196.8L79.3 177.3A80 80 0 0 1 60 169.3L42.4 179.3L20.7 157.6L30.7 140A80 80 0 0 1 22.7 120.7L3.2 115.3L3.2 84.7L22.7 79.3A80 80 0 0 1 30.7 60L20.7 42.4L42.4 20.7L60 30.7A80 80 0 0 1 79.3 22.7Z' fill='%23000' stroke='%23000' stroke-width='6' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
+}
+
+/* a phone's toolbars come and go as it scrolls: the pinned stage is as tall as the screen with them gone, so nothing
+   is ever cut off, and anything that must be seen before scrolling stays inside --view */
+:root {
+  --stage: 100vh;
+  --view: 100vh;
+}
+@supports (height: 100lvh) {
+  :root {
+    --stage: 100lvh;
+    --view: 100svh;
+  }
 }
 
 @property --d {
@@ -117,21 +127,10 @@ main,
 /* the board the hero's dive lands in: full width and square on top, so the dark carries straight on */
 .board-dive {
   /* tucked under the hero's last screen, so the copy in Geary's eye lands exactly on it */
-  margin-top: -100vh;
-  margin-top: -100svh;
+  margin-top: calc(var(--stage) * -1);
   margin-inline: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-}
-.board-top {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-.board-bottom {
-  margin-bottom: clamp(8px, 1.6vw, 24px);
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  box-shadow: 0 50px 90px -50px rgba(29, 24, 56, 0.6);
 }
 .skip {
   position: absolute;
@@ -190,16 +189,28 @@ main,
   padding: 13px 24px;
   border-radius: 999px;
   border: 1px solid transparent;
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.2s, border-color 0.2s;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
+/* the full ramp at rest; hovering cross-fades to the club's purple and pink (a gradient can't transition by itself) */
 .btn.primary {
-  background: var(--deep) border-box;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(100deg, #5a63d3, #8b55c0 50%, #c83f5a);
   color: #fff;
-  box-shadow: 0 10px 24px -12px rgba(138, 88, 207, 0.7);
+  box-shadow: 0 10px 24px -12px rgba(125, 72, 196, 0.7);
 }
-.btn.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 30px -12px rgba(191, 65, 140, 0.6);
+.btn.primary::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  background: linear-gradient(100deg, #7d48c4, #b03a82);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.btn.primary:hover::before {
+  opacity: 1;
 }
 .btn.secondary {
   background: var(--surface);
@@ -207,8 +218,8 @@ main,
   border-color: var(--line);
 }
 .btn.secondary:hover {
-  border-color: rgba(29, 24, 56, 0.25);
-  transform: translateY(-2px);
+  background: #fce8f2;
+  border-color: var(--c3);
 }
 .btn.white {
   background: #fff;
@@ -216,8 +227,7 @@ main,
   box-shadow: 0 12px 28px -14px rgba(29, 24, 56, 0.55);
 }
 .btn.white:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 34px -14px rgba(29, 24, 56, 0.6);
+  background: #fce8f2;
 }
 .btn.ghost {
   background: rgba(255, 255, 255, 0.08);
@@ -225,9 +235,9 @@ main,
   border-color: rgba(255, 255, 255, 0.45);
 }
 .btn.ghost:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: #fff;
   border-color: #fff;
-  transform: translateY(-2px);
+  color: var(--ink);
 }
 .btn.sm {
   padding: 9px 18px;
@@ -256,11 +266,11 @@ main,
   border: 1px solid var(--line);
   color: var(--ink);
   cursor: pointer;
-  transition: transform 0.3s var(--ease), border-color 0.2s, background 0.2s;
+  transition: transform 0.2s var(--ease), border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 .icon-btn:hover {
-  transform: translateY(-2px);
-  border-color: rgba(29, 24, 56, 0.25);
+  background: #fce8f2;
+  border-color: var(--c3);
 }
 .icon-btn:active {
   transform: scale(0.94);
@@ -271,8 +281,9 @@ main,
   color: #fff;
 }
 .icon-btn.glass:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: #fff;
   border-color: #fff;
+  color: var(--ink);
 }
 .icon-btn svg {
   width: 16px;
@@ -409,33 +420,27 @@ main,
   }
 }
 
-/* the old wash and painted fields are gone: the page artwork does that job */
-@keyframes drift {
-  50% {
-    translate: 4vw 3vw;
-    scale: 1.08;
-  }
-}
-
 /* ───────────── hero: the gear you fall through ───────────── */
 /* the hero sits over the first board and the stage pins above it, so the dive ends on the real events */
 .hero {
   position: relative;
   z-index: 2;
-  height: calc(100svh + 70vh);
+  height: calc(var(--stage) + 70vh);
   pointer-events: none;
 }
 /* a wheel covers ground slower than a thumb flick, so desktop gets a much shorter dive */
 @media (min-width: 900px) {
   .hero {
-    height: calc(100svh + 42vh);
+    height: calc(var(--stage) + 42vh);
   }
 }
 .hero-stage {
+  --gx: 72%;
+  --gy: 50%;
+  --gr: 220px;
   position: sticky;
   top: 0;
-  height: 100vh;
-  height: 100svh;
+  height: var(--stage);
   overflow: hidden;
   isolation: isolate;
   background: var(--bg);
@@ -466,10 +471,99 @@ main,
   outline-offset: -8px;
   border-radius: 28px;
 }
+/* no 3D on this device: a drawn Geary stands in, and the page simply scrolls */
+.hero-still {
+  display: none;
+  position: absolute;
+  z-index: 1;
+  left: var(--gx);
+  top: var(--gy);
+  width: calc(var(--gr) * 1.7);
+  height: auto;
+  translate: -50% -50%;
+}
+.no-3d .hero-still,
+.hero-gear[data-status="error"] + .hero-still {
+  display: block;
+}
+/* the toys around Geary: laid out from Geary's measured place on screen, so they hold at every size */
+.hero-toys {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  transform-origin: var(--gx) var(--gy);
+  will-change: opacity, transform;
+}
+.hero-sticker {
+  --x: 0px;
+  --y: 0px;
+  position: absolute;
+  left: calc(var(--gx) + var(--ox) * var(--gr));
+  top: calc(var(--gy) + var(--oy) * var(--gr));
+  width: calc(var(--sw) * var(--gr));
+  translate: -50% -50%;
+  transform: translate(var(--x), var(--y)) rotate(var(--tilt));
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: rotate 0.3s var(--ease), scale 0.3s var(--ease);
+}
+.hero-sticker img {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 8px 10px rgba(29, 24, 56, 0.28));
+  animation: bob 5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.hero-sticker:nth-child(even) img {
+  animation-duration: 6.5s;
+  animation-delay: -2s;
+}
+.hero-sticker:hover {
+  rotate: -3deg;
+}
+.hero-sticker.held {
+  cursor: grabbing;
+  rotate: 4deg;
+  scale: 1.08;
+  z-index: 3;
+}
+@keyframes bob {
+  to {
+    translate: 0 -9px;
+  }
+}
+.hero-say {
+  position: absolute;
+  left: min(calc(var(--gx) + var(--gr) * 0.3), calc(100% - 212px));
+  top: calc(var(--gy) - var(--gr) * 1.02);
+  max-width: 200px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 16px 16px 16px 4px;
+  background: #fff;
+  color: var(--ink);
+  font: 600 0.86rem/1.3 var(--head);
+  text-align: left;
+  box-shadow: 0 10px 24px -10px rgba(29, 24, 56, 0.45);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 0.3s ease;
+}
+.hero-say:hover {
+  background: #fce8f2;
+}
+.hero-say span {
+  display: block;
+  animation: screenIn 0.35s var(--ease);
+}
 .hero-copy {
   position: relative;
   z-index: 2;
-  height: 100%;
+  height: var(--view);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -481,13 +575,87 @@ main,
   max-width: 560px;
 }
 .hero h1 {
-  font-size: clamp(2.6rem, 5.2vw, 5rem);
+  font-size: clamp(2.6rem, 4.4vw, 4.2rem);
   line-height: 1.04;
   letter-spacing: -0.035em;
   max-width: 13ch;
 }
+.hero-lede {
+  margin-top: clamp(14px, 2.2vh, 22px);
+  max-width: 42ch;
+  font-size: clamp(1rem, 1.3vw, 1.16rem);
+  color: var(--text);
+}
 .hero .ctas {
-  margin-top: clamp(26px, 4vh, 40px);
+  margin-top: clamp(20px, 3.2vh, 32px);
+}
+.hero-stats {
+  display: flex;
+  gap: clamp(18px, 2.6vw, 36px);
+  margin: clamp(22px, 3.6vh, 38px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hero-stats li {
+  display: grid;
+  line-height: 1.25;
+}
+.hero-stats b {
+  font: 700 clamp(1.4rem, 2.1vw, 1.9rem) / 1.1 var(--head);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.hero-stats span {
+  font-size: 0.8rem;
+  color: var(--mute);
+}
+/* what's on next, live: a small pass in the corner that drops you at the countdown */
+.hero-next {
+  position: absolute;
+  right: var(--gutter);
+  bottom: clamp(20px, 4vh, 40px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: 0 12px 26px -16px rgba(29, 24, 56, 0.45);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.hero-next:hover {
+  background: #fce8f2;
+  border-color: var(--c3);
+}
+.hero-next-art {
+  flex: none;
+  width: 40px;
+  height: 40px;
+}
+.hero-next-art svg {
+  width: 100%;
+  height: 100%;
+}
+.hero-next-text {
+  display: grid;
+  line-height: 1.25;
+}
+.hero-next-text b {
+  font: 700 0.9rem var(--head);
+}
+.hero-next-text span {
+  font-size: 0.76rem;
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+}
+.hero-next > svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
 }
 .hero h1 .grad {
   background: linear-gradient(100deg, #5f6fdc, #8a58cf 30%, #bf418c 60%, #d23350 80%, #8a58cf) 0 0 / 200% 100%;
@@ -514,6 +682,52 @@ main,
   background: radial-gradient(closest-side, rgba(251, 249, 254, 0.92), rgba(251, 249, 254, 0.6) 55%, transparent);
   pointer-events: none;
 }
+/* the keep-scrolling nudge: one pill at the foot of the screen, legible on the light page and the navy boards */
+.cue {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: 600 0.82rem var(--body);
+  white-space: nowrap;
+  box-shadow: 0 12px 26px -12px rgba(29, 24, 56, 0.5);
+  cursor: pointer;
+  opacity: 0;
+  translate: -50% 10px;
+  pointer-events: none;
+  transition: opacity 0.35s ease, translate 0.45s var(--ease), background-color 0.3s ease;
+}
+.cue.on {
+  opacity: 1;
+  translate: -50% 0;
+  pointer-events: auto;
+}
+.cue:hover {
+  background: #fce8f2;
+}
+.cue-gear {
+  width: 18px;
+  height: 18px;
+  fill: var(--c3);
+}
+.cue-arrow {
+  width: 14px;
+  height: 14px;
+  animation: nudge 1.5s ease-in-out infinite;
+}
+@keyframes nudge {
+  50% {
+    translate: 0 3px;
+  }
+}
 .portal {
   position: absolute;
   inset: 0;
@@ -531,9 +745,11 @@ main,
   transform-origin: 0 0;
   will-change: transform;
 }
+/* never wider than its shot: the real wall stops growing there too, so a big window lands on the same picture */
 .portal-world img {
-  width: 100%;
+  width: min(100%, var(--shot-w, 100%));
   height: auto;
+  margin-inline: auto;
 }
 #events {
   scroll-margin-top: -90px; /* the nav link lands past the dive, on the section itself */
@@ -541,11 +757,99 @@ main,
 @media (max-width: 899px) {
   .hero-copy {
     justify-content: flex-end;
-    padding-bottom: max(7vh, 40px);
+    padding-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px); /* clear of the scroll cue */
   }
   .hero h1 {
-    font-size: clamp(2.2rem, 9.4vw, 3.2rem);
+    font-size: clamp(1.95rem, 8.4vw, 3.2rem);
+    max-width: 15ch;
   }
+  .hero-lede {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .hero .ctas {
+    margin-top: 16px;
+    gap: 8px;
+  }
+  .hero-stats {
+    margin-top: 16px;
+  }
+  /* the room under Geary is the copy's on a phone or tablet */
+  .hero-sticker:last-of-type {
+    display: none;
+  }
+  /* the pool moves down with the copy, so it doesn't wash out Geary */
+  .hero-copy::before {
+    left: -5vw;
+    top: auto;
+    bottom: 0;
+    width: 110vw;
+    height: 50%;
+    translate: none;
+  }
+  .hero-stats span {
+    font-size: 0.74rem;
+  }
+  .hero-copy > * {
+    max-width: none;
+  }
+  .hero-next {
+    position: static;
+    margin-top: 12px;
+    padding-block: 5px;
+    align-self: flex-start;
+  }
+  .hero-next-art {
+    width: 30px;
+    height: 30px;
+  }
+  .hero-say {
+    font-size: 0.78rem;
+    padding: 7px 11px;
+    max-width: 150px;
+  }
+}
+@media (max-width: 560px) {
+  .hero .ctas .btn {
+    flex: 1 1 0;
+    padding-inline: 12px;
+    font-size: 0.88rem;
+  }
+  .hero .ctas .btn svg {
+    display: none;
+  }
+  .hero-stats {
+    gap: 0;
+    justify-content: space-between;
+  }
+}
+/* short phones: the essentials first, so the copy never climbs under the nav */
+@media (max-width: 899px) and (max-height: 700px) {
+  .hero-next {
+    display: none;
+  }
+}
+@media (max-width: 899px) and (max-height: 600px) {
+  .hero-stats,
+  .hero-toys {
+    display: none;
+  }
+}
+@media (max-width: 359px) {
+  .hero .ctas .btn {
+    padding-inline: 6px;
+    font-size: 0.8rem;
+  }
+}
+.hero.no-3d {
+  height: auto;
+}
+.hero.no-3d ~ main .board-dive {
+  margin-top: 0;
+}
+.hero.no-3d .hero-stage {
+  position: relative;
 }
 @media (prefers-reduced-motion: reduce) {
   .hero {
@@ -572,7 +876,7 @@ main,
   padding: clamp(56px, 8vw, 96px) var(--gutter) clamp(64px, 8vw, 100px);
 }
 .events-board.is-board {
-  height: clamp(880px, 112vh, 1040px);
+  height: clamp(780px, 100vh, 920px);
   padding: 0;
 }
 .events-title {
@@ -581,11 +885,15 @@ main,
 }
 .is-board .events-title {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
+  inset: 96px 0 auto;
   margin: 0;
   pointer-events: none;
+}
+.is-board .events-title h2 {
+  font-size: min(15vw, 25vh, 13.5rem);
+}
+.is-board .events-title p {
+  margin-top: 16px;
 }
 .events-title h2 {
   font-size: clamp(4.6rem, 17vw, 14.5rem);
@@ -732,6 +1040,7 @@ main,
   position: absolute;
   left: var(--left);
   top: var(--top);
+  width: min(200px, 14vw);
   cursor: grab;
   touch-action: none;
 }
@@ -778,10 +1087,9 @@ main,
   clip-path: polygon(100% calc(100% - var(--d)), 100% 100%, calc(100% - var(--d)) 100%);
   filter: brightness(0) invert(0.92) sepia(0.25) hue-rotate(205deg);
 }
-@media (max-width: 1240px) {
+@media (max-width: 1340px) {
   .is-board .snap {
-    width: 180px;
-    --s: 0.42;
+    --s: 0.36;
   }
 }
 @media (max-width: 999px), (pointer: coarse) {
@@ -1011,14 +1319,20 @@ main,
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
+/* always tall enough for the biggest stat, so the window keeps its height from tab to tab */
 .mac-dots {
+  --cols: 20;
+  --rows: 5;
+  --across: var(--cols);
   display: grid;
-  grid-template-columns: repeat(20, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--across), minmax(0, 1fr));
+  align-content: start;
+  aspect-ratio: var(--cols) / var(--rows);
   gap: 4px;
   margin-top: 14px;
 }
 .mac-dots.tiles {
-  grid-template-columns: repeat(16, minmax(0, 1fr));
+  --across: 16;
 }
 .mac-dots i {
   aspect-ratio: 1;
@@ -1048,8 +1362,25 @@ main,
   top: 0;
   height: 100vh;
   height: 100svh;
-  padding-block: 76px 20px;
+  padding-block: 76px 28px;
   overflow: clip;
+}
+/* the pinned scene clips whatever doesn't fit, so on a shorter screen the window gives up height to stay whole */
+@media (max-height: 860px) {
+  .about.is-scrolly .mac-dots {
+    --cols: 35;
+    --rows: 3;
+    gap: 3px;
+  }
+  .about.is-scrolly .mac-dots.tiles {
+    --across: 28;
+  }
+  .about.is-scrolly .mac-url {
+    display: none;
+  }
+  .about.is-scrolly .mac-panel {
+    padding-block: 14px 16px;
+  }
 }
 .about.is-scrolly .about-copy {
   will-change: opacity, transform;
@@ -1159,9 +1490,10 @@ main,
   color: var(--on-ink-mute);
   font: 500 0.82rem var(--body);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 .kc-teams button:hover {
+  background: rgba(243, 239, 251, 0.16);
   color: #fff;
   border-color: rgba(243, 239, 251, 0.5);
 }
@@ -1276,8 +1608,6 @@ main,
 .kc-col {
   position: relative;
   min-width: 0;
-}
-.kc-col {
   margin-top: 8px;
 }
 .kc-stage {
@@ -1328,16 +1658,6 @@ main,
   transform: translateZ(10px) rotate(14deg);
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
   cursor: move;
-}
-.kc-charm circle {
-  fill: var(--ink);
-}
-/* between teams the keychain just fades */
-.kc-strand {
-  transition: opacity 0.24s ease-out;
-}
-.kc-stage.is-out .kc-strand {
-  opacity: 0;
 }
 .kc-strand {
   position: absolute;
@@ -1509,9 +1829,6 @@ a.kc-face:focus-visible .kc-open {
   height: 24px;
   fill: var(--c2);
 }
-.kc-emoji.none circle {
-  fill: #fff;
-}
 .kc-sheen {
   position: absolute;
   inset: 0;
@@ -1550,11 +1867,12 @@ a.kc-face:focus-visible .kc-open {
   color: #fff;
   font: 500 0.92rem var(--body);
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 .team-all-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: #fff;
   border-color: #fff;
+  color: var(--ink);
 }
 /* the fold animates its height from 0 to its content's, and the list fades and rises in with it */
 .team-all-fold {
@@ -1685,7 +2003,7 @@ a.kc-face:focus-visible .kc-open {
   color: var(--ink);
   text-decoration: none;
   filter: drop-shadow(0 1px 1px rgba(29, 24, 56, 0.06)) drop-shadow(0 12px 20px rgba(154, 47, 114, 0.14));
-  transition: translate 0.4s var(--ease), filter 0.4s var(--ease);
+  transition: filter 0.3s ease;
 }
 .ticket > span {
   background: #fff;
@@ -1724,7 +2042,7 @@ a.kc-face:focus-visible .kc-open {
   gap: 2px;
   border-radius: 0 16px 16px 0;
   border-left: 2px dashed rgba(210, 95, 166, 0.35);
-  transition: background 0.3s var(--ease), color 0.3s var(--ease);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 .ticket-stub b {
   font: 700 1rem var(--head);
@@ -1736,12 +2054,11 @@ a.kc-face:focus-visible .kc-open {
 }
 .ticket:hover,
 .ticket:focus-visible {
-  translate: 6px 0;
   filter: drop-shadow(0 1px 1px rgba(29, 24, 56, 0.06)) drop-shadow(0 16px 26px rgba(154, 47, 114, 0.24));
 }
 .ticket:hover .ticket-stub,
 .ticket:focus-visible .ticket-stub {
-  background: var(--deep);
+  background-color: #b03a82;
   color: #fff;
 }
 .ticket:hover .ticket-stub small,
@@ -1840,6 +2157,7 @@ a.kc-face:focus-visible .kc-open {
   color: var(--ink);
 }
 .join .icon-btn.glass:hover {
+  background: #fce8f2;
   border-color: var(--c3);
 }
 .geary-tools {
@@ -2028,10 +2346,11 @@ a.kc-face:focus-visible .kc-open {
   margin-top: 16px;
   max-width: 34ch;
 }
-.footer h4 {
+.footer h3 {
   margin: 0 0 14px;
   color: var(--on-ink);
   font: 600 0.9rem var(--body);
+  letter-spacing: 0;
 }
 .footer ul {
   list-style: none;
@@ -2068,6 +2387,7 @@ a.kc-face:focus-visible .kc-open {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
   html {
@@ -2090,15 +2410,13 @@ a.kc-face:focus-visible .kc-open {
   background: rgba(243, 239, 251, 0.08);
   border: 1px solid rgba(243, 239, 251, 0.16);
   text-decoration: none;
-  transition: color 0.25s var(--ease), background 0.25s var(--ease), translate 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
 }
 .footer .social a:hover {
-  color: #fff;
-  background: var(--deep);
-  border-color: transparent;
-  translate: 0 -2px;
+  color: var(--ink);
+  background: #fff;
+  border-color: #fff;
   text-decoration: none;
-  box-shadow: 0 8px 18px -8px rgba(210, 95, 166, 0.7);
 }
 .footer .social a:focus-visible {
   border-radius: 50%;
@@ -2111,7 +2429,7 @@ a.kc-face:focus-visible .kc-open {
   padding-block: clamp(72px, 9vw, 120px);
   overflow: clip;
 }
-/* the bridge from the sticker wall: a rule, a live dot and the ask */
+/* the bridge from the sticker wall: a rule, the ask, and Geary cheering it on */
 .up-head {
   display: flex;
   flex-wrap: wrap;
@@ -2133,28 +2451,12 @@ a.kc-face:focus-visible .kc-open {
   font-size: clamp(1.6rem, 3.2vw, 2.5rem);
   letter-spacing: -0.02em;
 }
-/* just a live dot beside the heading */
-.up-open {
-  display: inline-flex;
-  align-items: center;
-}
-.up-open i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #5be3a1;
-  box-shadow: 0 0 0 0 rgba(91, 227, 161, 0.6);
-  animation: openPulse 1.2s ease-out 1;
-}
-@keyframes openPulse {
-  to {
-    box-shadow: 0 0 0 10px rgba(91, 227, 161, 0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .up-open i {
-    animation: none;
-  }
+.up-geary {
+  order: -1;
+  width: clamp(44px, 5vw, 64px);
+  height: auto;
+  margin-block: -8px;
+  filter: drop-shadow(0 6px 8px rgba(8, 5, 24, 0.4));
 }
 .up-grid {
   display: grid;
@@ -2237,8 +2539,8 @@ a.kc-face:focus-visible .kc-open {
   position: absolute;
   width: clamp(120px, 14vw, 170px);
   aspect-ratio: 1;
-  right: -18px;
-  top: -64px;
+  right: -34px;
+  top: -92px;
   z-index: 1;
   rotate: 14deg;
   filter: drop-shadow(0 18px 24px rgba(8, 5, 24, 0.5));
@@ -2356,11 +2658,6 @@ a.kc-face:focus-visible .kc-open {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.95);
   box-shadow: 0 2px 4px rgba(29, 24, 56, 0.05), 0 30px 60px -34px rgba(29, 24, 56, 0.45);
-  transition: translate 0.5s var(--ease), box-shadow 0.5s var(--ease);
-}
-.offer-card:hover {
-  translate: 0 -6px;
-  box-shadow: 0 2px 4px rgba(29, 24, 56, 0.05), 0 40px 70px -34px rgba(29, 24, 56, 0.55);
 }
 .offer-card img {
   width: 100%;
@@ -2495,6 +2792,7 @@ a.kc-face:focus-visible .kc-open {
 }
 /* the conveyor: boxes ride from idea to v1.0, then drop off into "shipped" */
 .ship {
+  --w: 260px;
   height: 120px;
   pointer-events: none;
 }
@@ -2580,9 +2878,6 @@ a.kc-face:focus-visible .kc-open {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   rotate: -8deg;
-}
-.ship {
-  --w: 260px;
 }
 @keyframes spin {
   to {
@@ -2771,21 +3066,21 @@ a.kc-face:focus-visible .kc-open {
 .boa-card {
   flex: none;
   width: var(--card-w);
-  height: 430px;
+  height: 470px;
   /* fanned like a hand of cards: tilted out from the middle, lower at the edges */
   rotate: calc(var(--off) * 3deg);
   translate: 0 calc(var(--arc) * 14px);
+}
+/* the copy that closes the loop, only where the hand drifts along */
+.boa-card.echo {
+  display: none;
 }
 .boa-inner {
   position: relative;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.8s var(--ease), translate 0.5s var(--ease);
-}
-.boa-card:hover .boa-inner,
-.boa-card:focus-within .boa-inner {
-  translate: 0 -10px;
+  transition: transform 0.8s var(--ease);
 }
 .boa-card.flipped .boa-inner {
   transform: rotateY(180deg);
@@ -2809,7 +3104,7 @@ a.kc-face:focus-visible .kc-open {
   transform: rotateY(180deg);
   background: var(--deep);
   color: #fff;
-  padding: 22px 20px 18px;
+  padding: 20px 18px 14px;
 }
 .boa-photo {
   display: block;
@@ -2855,22 +3150,36 @@ a.kc-face:focus-visible .kc-open {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
+  transition: color 0.3s ease;
+}
+.boa-flip:hover {
+  color: #b03a82;
+}
+.boa-back .boa-flip:hover {
+  color: #fce8f2;
 }
 .boa-back h3 {
   color: #fff;
   margin-bottom: 10px;
 }
+/* every bio fits at full size; on the narrowest cards it can still scroll, fading out at the foot, with no bar */
 .boa-back p {
-  font-size: 0.82rem;
-  line-height: 1.55;
+  font-size: 0.8rem;
+  line-height: 1.5;
   flex: 1 1 auto;
-  min-height: 0; /* lets a long bio scroll inside the card instead of under its buttons */
+  min-height: 0;
+  padding-bottom: 12px;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -webkit-mask: linear-gradient(#000 calc(100% - 14px), transparent);
+  mask: linear-gradient(#000 calc(100% - 14px), transparent);
+}
+.boa-back p::-webkit-scrollbar {
+  display: none;
 }
 .boa-actions {
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2920,8 +3229,7 @@ a.kc-face:focus-visible .kc-open {
     --card-w: min(250px, 74vw);
     justify-content: flex-start;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--gutter);
+    overscroll-behavior-x: contain;
     padding-block: 16px 32px;
     scrollbar-width: none;
   }
@@ -2932,7 +3240,9 @@ a.kc-face:focus-visible .kc-open {
     scroll-snap-align: start;
     rotate: none;
     translate: none;
-    height: 440px;
+  }
+  .boa-card.echo {
+    display: block;
   }
   .boa-deck .boa-card {
     animation: none;
@@ -2961,7 +3271,6 @@ a.kc-face:focus-visible .kc-open {
   from {
     opacity: 0;
     transform: perspective(900px) translateY(48px) rotateX(-28deg);
-    filter: blur(8px);
   }
 }
 
@@ -2982,16 +3291,17 @@ a.kc-face:focus-visible .kc-open {
     margin-inline: calc(var(--gutter) * -1);
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    transition: opacity 0.18s ease-out;
   }
   .kc-rail::-webkit-scrollbar {
     display: none;
   }
+  /* between teams the rail spins round, and the new team is on it when it comes back (see SPIN in Team.tsx) */
   .kc-rail.is-out {
-    opacity: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    animation: railSpin 0.6s ease-in-out;
   }
   .kc-rail-track {
     display: flex;
@@ -3038,6 +3348,32 @@ a.kc-face:focus-visible .kc-open {
     text-align: center;
     font-size: 0.82rem;
     color: var(--on-ink-mute);
+  }
+}
+@keyframes railSpin {
+  from {
+    transform: perspective(1100px) rotateY(0deg);
+  }
+  to {
+    transform: perspective(1100px) rotateY(360deg);
+  }
+}
+/* no spin for reduced motion: the team just fades across, and with no glide the rails snap card by card under a swipe */
+@media (prefers-reduced-motion: reduce) {
+  .kc-rail,
+  .boa-deck {
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+  }
+  .kc-strand,
+  .kc-rail {
+    transition: opacity 0.24s ease-out !important;
+    transition-duration: 0.24s !important;
+  }
+  .kc-stage.is-out .kc-strand,
+  .kc-rail.is-out {
+    opacity: 0;
+    animation: none;
   }
 }
 @keyframes railSwing {

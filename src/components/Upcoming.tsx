@@ -1,24 +1,16 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
-import { useSyncExternalStore } from "react";
 import { LINKS, UPCOMING } from "@/data/site";
+import { useNow } from "@/lib/clock";
+import { asset } from "@/lib/asset";
 import { StickerArt } from "./StickerArt";
 import { Arrow } from "./icons";
-
-/** A once-a-second clock that is null on the server, so the countdown never mismatches during hydration. */
-const clock = {
-  subscribe(cb: () => void) {
-    const t = window.setInterval(cb, 1000);
-    return () => window.clearInterval(t);
-  },
-  now: () => Math.floor(Date.now() / 1000) * 1000,
-  server: () => null,
-};
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function Upcoming() {
-  const now = useSyncExternalStore(clock.subscribe, clock.now, clock.server);
+  const now = useNow();
   const ev = UPCOMING.find((e) => now === null || Date.parse(e.end) > now);
 
   if (!ev) {
@@ -50,11 +42,9 @@ export default function Upcoming() {
   return (
     <section className="upcoming" id="upcoming" aria-labelledby="up-h">
       <div className="wrap up-head">
-        <p className="up-open">
-          <i aria-hidden="true" />
-          <span className="sr">{live ? "Happening now" : "Registration open"}</span>
-        </p>
         <h2 id="up-h">Sign up for our upcoming event</h2>
+        <img className="up-geary" src={asset("/scenery/geary-happy.webp")} alt="" width="426" height="440" loading="lazy" />
+        <p className="sr">{live ? "Happening now" : "Registration open"}</p>
       </div>
       <div className="wrap up-grid">
         <div className="up-main">

@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LINKS } from "@/data/site";
 import { asset } from "@/lib/asset";
 
@@ -14,20 +14,22 @@ const ITEMS = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const away = (e: PointerEvent) => !navRef.current!.contains(e.target as Node) && setOpen(false);
     document.addEventListener("keydown", esc);
-    document.documentElement.classList.add("menu-open");
+    document.addEventListener("pointerdown", away);
     return () => {
       document.removeEventListener("keydown", esc);
-      document.documentElement.classList.remove("menu-open");
+      document.removeEventListener("pointerdown", away);
     };
   }, [open]);
 
   return (
-    <nav aria-label="Primary" className={`nav${open ? " open" : ""}`}>
+    <nav aria-label="Primary" className={`nav${open ? " open" : ""}`} ref={navRef}>
       <a className="logo" href="#top" onClick={() => setOpen(false)}>
         <img src={asset("/brand/pmc-logo-96.png")} alt="" width="30" height="26" />
         UBC PMC
@@ -40,9 +42,10 @@ export default function Nav() {
         ))}
       </div>
       <a className="btn primary sm" href={LINKS.member}>
-        Join the club
+        Portal
       </a>
       <button
+        type="button"
         className="menu-btn"
         aria-expanded={open}
         aria-controls="nav-links"

@@ -9,6 +9,7 @@ import GetInvolved from "@/components/GetInvolved";
 import Nav from "@/components/Nav";
 import { Edge, EasterEggs, GearTrain, GearyPop, ShipIt } from "@/components/Playthings";
 import { Footer } from "@/components/Chrome";
+import ScrollCue from "@/components/ScrollCue";
 import { asset } from "@/lib/asset";
 
 export default function Home() {
@@ -46,6 +47,7 @@ export default function Home() {
         <GetInvolved />
       </main>
       <Footer />
+      <ScrollCue />
       <EasterEggs />
     </>
   );

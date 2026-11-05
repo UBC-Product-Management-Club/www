@@ -22,7 +22,7 @@ export function Footer() {
             <p className="foot-line">Canada’s largest product management club, at the University of British Columbia.</p>
           </div>
           <div>
-            <h4>Explore</h4>
+            <h3>Explore</h3>
             <ul>
               <li><a href="#events">Events</a></li>
               <li><a href="#about">About</a></li>
@@ -33,7 +33,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4>Contact</h4>
+            <h3>Contact</h3>
             <ul>
               <li><a href={LINKS.connect}>connect@ubcpmc.com</a></li>
               <li><a href={LINKS.partnerships}>partnerships@ubcpmc.com</a></li>

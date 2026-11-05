@@ -19,7 +19,13 @@ export default function GearyStage({ label }: { label: string }) {
     const host = hostRef.current!;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    } catch {
+      queueMicrotask(() => setStatus("error")); // no WebGL on this device; the status line says so
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     host.appendChild(renderer.domElement);

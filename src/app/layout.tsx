@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
+import { asset } from "@/lib/asset";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -9,10 +10,15 @@ const poppins = Poppins({
   display: "swap",
 });
 
+const title = "UBC PMC | Canada’s Largest Product Management Club";
+const description =
+  "UBC Product Management Club: events, mentorship and industry connections for students preparing for product roles. Become a member today.";
+
 export const metadata: Metadata = {
-  title: "UBC PMC | Canada’s Largest Product Management Club",
-  description:
-    "UBC Product Management Club: events, mentorship and industry connections for students preparing for product roles. Become a member today.",
+  metadataBase: new URL("https://ubcpmc.com"),
+  title,
+  description,
+  openGraph: { title, description, url: "/", siteName: "UBC PMC", type: "website" },
 };
 
 export const viewport: Viewport = {
@@ -22,22 +28,14 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const CONTRACT = `<!--
-THESIS: The club as things you can pick up: a gear to spin, stickers to peel, a badge to swing, a mascot to turn. Refuses the static card-grid club page.
-OWN-WORLD: the PMC poster ramp (periwinkle #8b9cf2, lavender #a97fdc, orchid #d25fa6, rose #e4405e) on near-white lavender #fbf9fe, deep ink #1d1838 for the events night scene, Poppins throughout (600/700 display), as on ubcpmc.com, glossy brand-gradient 3D, Geary's silver, navy and orange.
-STORY: spin the gear, fall through it into the events, zoom back out to the numbers, meet the people, meet Geary, join.
-FIRST VIEWPORT: "Canada’s Largest Product Management Club" with member + volunteer actions, beside a 3D Geary among floating brand gears.
-SIGNATURE: scroll dives the camera into Geary's eye, whose pupil becomes the dark events wall; later, the team rides a factory belt past Geary.
--->`;
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={poppins.variable}>
       <head>
         <link rel="preconnect" href="https://framerusercontent.com" />
+        <link rel="preload" href={asset("/models/geary.glb")} as="fetch" crossOrigin="anonymous" />
       </head>
       <body>
-        <div hidden dangerouslySetInnerHTML={{ __html: CONTRACT }} />
         {children}
       </body>
     </html>

@@ -3,24 +3,30 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { PHOTOS, TEAM, TEAMS, type Member } from "@/data/site";
-import { gearPath } from "@/lib/gear";
-import { useMedia } from "@/lib/motion";
+import { gearHole, gearPath } from "@/lib/gear";
+import { easeInOut, useMedia } from "@/lib/motion";
+import { useAutoScroll } from "@/lib/useAutoScroll";
 import { Arrow, ArrowLeft, External, Pause, Play } from "./icons";
 import { asset } from "@/lib/asset";
 
 /** Every team hangs whole on the ring: Tech's eight, the two Co-Presidents. */
 const SETS: Member[][] = TEAMS.map((t) => TEAM.filter((m) => m.team === t)).filter((s) => s.length);
-/** A bigger team stays up a little longer, so there's time to read every card. */
-const holdFor = (n: number) => 3800 + n * 450;
-/** How long the keychain takes to fade out before the next team swaps in, and to fade back (ms). */
-const FOLD = 240;
+/** A quick look at each team, a beat longer for a bigger one (ms). */
+const holdFor = (n: number) => 1860 + n * 150;
+/** How long the keychain takes to spin round to the next team, who swap on at the halfway mark, its back to you (ms). */
+const SPIN = 600;
+/** The same change as a plain fade, for reduced motion (ms). */
+const FADE = 480;
+/** The phone rail's speed (px/s, about a person every two seconds), and its pause on the last person before the next team (ms). */
+const RAIL_SPEED = 95;
+const RAIL_DWELL = 600;
 const LINK = 17; // px of chain per link
 /** The strands hang from here, just under the ring (px below the rig's origin). */
 const ORIGIN = 84;
 /** The keychain's resting pose (deg), and how far a drag can twist it either way. */
 const HOME = { ry: -8, rx: 6 };
 const TWIST = 30;
-const CHARM = gearPath(100, 100, 96);
+const CHARM = gearPath(100, 100, 96) + gearHole(100, 100, 30);
 const initials = (n: string) => n.split(/[\s-]+/).map((w) => w[0]).join("").slice(0, 2);
 const first = (n: string) => n.split(" ")[0];
 
@@ -76,8 +82,7 @@ function Badge({ m }: { m: Member }) {
   ) : (
     <span className="kc-emoji none" aria-hidden="true">
       <svg viewBox="0 0 200 200">
-        <path d={CHARM} />
-        <circle cx="100" cy="100" r="30" />
+        <path d={CHARM} fillRule="evenodd" />
       </svg>
     </span>
   );
@@ -126,21 +131,18 @@ export default function Team() {
   const stageRef = useRef<HTMLDivElement>(null);
   const rigRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
-  const live = useRef({ set: 0, busy: false, hold: 0, paused: false, playing: true, spread: 0, n: SETS[0].length });
+  const live = useRef({ set: 0, busy: false, hold: 0, paused: false, playing: true, spread: 0, n: SETS[0].length, spunAt: -1 });
 
   const people = SETS[set];
   const geo = layout(people.length, width, (cw) => cw + extra);
   // phones swipe through one long rail instead of wrapping the keychain into tiny rows
   const phone = useMedia("(max-width: 640px)");
-  const hung = centreVP(people, phone ? people.length : geo.perRow);
+  // on the rail the VP simply goes first, where the glide starts
+  const hung = centreVP(people, phone ? 1 : geo.perRow);
   const railRef = useRef<HTMLDivElement>(null);
-  const vpName = people[0].role.startsWith("VP") ? people[0].name : null;
-  // each team opens on the rail with its VP centred
+  // each team starts from its first card
   useLayoutEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const vp = rail.querySelector<HTMLElement>("[data-vp]");
-    rail.scrollLeft = vp ? vp.offsetLeft - (rail.clientWidth - vp.offsetWidth) / 2 : 0;
+    if (railRef.current) railRef.current.scrollLeft = 0;
   }, [phone, set]);
   // the strands' angles and lengths, for the physics loop
   const strands = geo.spots.map((s) => ({
@@ -151,23 +153,27 @@ export default function Team() {
   }));
   const strandsRef = useRef(strands);
 
-  /** Fade the keychain out, swap in team k, fade it back. The burst out of the ring only happens once, on arrival. */
+  /** Spin the keychain round, swapping in team k behind its back. The burst out of the ring only happens once, on arrival. */
   const go = (k: number) => {
     const L = live.current;
     const next = (k + SETS.length) % SETS.length;
     if (L.busy || next === L.set) return;
+    const turn = reduced ? FADE : SPIN;
     L.busy = true;
     L.hold = 0;
+    L.spunAt = reduced ? -1 : 0; // the animation loop starts the clock
     setOut(true);
     window.setTimeout(() => {
       L.set = next;
       L.n = SETS[next].length;
       setSet(next);
-      requestAnimationFrame(() => {
-        setOut(false);
-        window.setTimeout(() => (L.busy = false), FOLD);
-      });
-    }, FOLD);
+      if (reduced) setOut(false);
+    }, turn / 2);
+    window.setTimeout(() => {
+      setOut(false);
+      L.busy = false;
+      L.spunAt = -1;
+    }, turn);
   };
   const goRef = useRef(go);
   useEffect(() => {
@@ -328,9 +334,12 @@ export default function Team() {
       }
       // at rest the whole keychain bobs slowly up and down
       const bob = reduce ? 0 : Math.sin(now / 1500) * 7;
-      rig.style.transform = `translate3d(${s.x.toFixed(1)}px, ${(s.y + bob).toFixed(1)}px, 0) rotateX(${s.rx.toFixed(2)}deg) rotateY(${s.ry.toFixed(2)}deg)`;
+      if (L.spunAt === 0) L.spunAt = now;
+      const spun = L.spunAt < 0 ? 1 : Math.min(1, (now - L.spunAt) / SPIN);
+      const ry = s.ry + easeInOut(spun) * 360;
+      rig.style.transform = `translate3d(${s.x.toFixed(1)}px, ${(s.y + bob).toFixed(1)}px, 0) rotateX(${s.rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
 
-      // autoplay: a few seconds a team, paused while you're holding, hovering or reading
+      // autoplay: a few seconds a team, held while you're dragging the keychain or hovering a person
       const hold = holdFor(L.n);
       if (visible && L.playing && !L.paused && !drag && !L.busy) {
         L.hold += dt * 1000;
@@ -353,48 +362,26 @@ export default function Team() {
     };
   }, []);
 
-  // on phones the rail walks itself through the team, then on to the next; a touch hands it over to you for a moment
-  useEffect(() => {
-    const rail = railRef.current;
-    if (!rail || !phone || !playing) return;
-    const items = [...rail.querySelectorAll<HTMLElement>(".kc-rail-item")];
-    const centre = (el: HTMLElement) => el.offsetLeft - (rail.clientWidth - el.offsetWidth) / 2;
-    let at = Math.max(0, items.findIndex((el) => el.hasAttribute("data-vp")));
-    let seen = 1, held = false, onScreen = false, resume = 0;
-    const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting), { threshold: 0.5 });
-    io.observe(rail);
-    const hold = () => {
-      held = true;
-      window.clearTimeout(resume);
-    };
-    const release = () => {
-      resume = window.setTimeout(() => {
-        held = false;
-        at = items.reduce((best, el, i) => (Math.abs(centre(el) - rail.scrollLeft) < Math.abs(centre(items[best]) - rail.scrollLeft) ? i : best), 0);
-      }, 3000);
-    };
-    rail.addEventListener("touchstart", hold, { passive: true });
-    rail.addEventListener("touchend", release, { passive: true });
-    rail.addEventListener("touchcancel", release, { passive: true });
-    const step = window.setInterval(() => {
-      if (held || !onScreen || document.hidden) return;
-      if (seen >= items.length) return goRef.current(live.current.set + 1);
-      at = (at + 1) % items.length;
-      seen++;
-      rail.scrollTo({ left: centre(items[at]), behavior: "smooth" });
-    }, 2400);
-    return () => {
-      window.clearInterval(step);
-      window.clearTimeout(resume);
-      io.disconnect();
-      rail.removeEventListener("touchstart", hold);
-      rail.removeEventListener("touchend", release);
-      rail.removeEventListener("touchcancel", release);
-    };
-  }, [phone, playing, set]);
+  // on phones the rail glides through the team, then spins on to the next; a touch hands it over to you for a moment
+  useAutoScroll(
+    railRef,
+    {
+      active: phone && playing,
+      speed: RAIL_SPEED,
+      dwell: RAIL_DWELL,
+      hold: () => live.current.busy || live.current.paused,
+      onEnd: () => goRef.current(live.current.set + 1),
+      onProgress: (share) => dotsRef.current?.style.setProperty("--fill", share.toFixed(3)),
+    },
+    set,
+  );
 
-  const pause = () => {
-    live.current.paused = true;
+  // autoplay holds only for someone reading a person's card, or moving through the section by keyboard
+  const hoverCard = (e: React.PointerEvent) => {
+    live.current.paused = !!(e.target as HTMLElement).closest(".kc-card");
+  };
+  const focusIn = (e: React.FocusEvent) => {
+    live.current.paused = e.target.matches(":focus-visible");
   };
   const resume = () => {
     live.current.paused = false;
@@ -412,7 +399,7 @@ export default function Team() {
   };
 
   return (
-    <section className="team" id="team" aria-labelledby="team-h" onFocus={pause} onBlur={resume}>
+    <section className="team" id="team" aria-labelledby="team-h" onFocus={focusIn} onBlur={resume}>
       <div className="team-props" aria-hidden="true">
         <img src={asset("/gears/orchid-9.webp")} alt="" />
       </div>
@@ -421,7 +408,7 @@ export default function Team() {
           <h2 id="team-h">Meet the team</h2>
           <p className="lede">The people behind UBC PMC, 2026/27. Click anyone to say hi.</p>
 
-          <div className="kc-nav" onPointerEnter={pause} onPointerLeave={resume}>
+          <div className="kc-nav">
             <div className="kc-teams" role="group" aria-label="Choose a team">
               {SETS.map((g, k) => (
                 <button key={g[0].team} type="button" aria-pressed={k === set} onClick={() => go(k)}>
@@ -482,14 +469,13 @@ export default function Team() {
           tabIndex={0}
           style={{ height: geo.height, "--cw": `${geo.cw}px` } as React.CSSProperties}
           aria-label={`The ${people[0].team} keychain. Drag or use the arrow keys to twist it; drag the ring to swing it.`}
-          onPointerEnter={pause}
+          onPointerOver={hoverCard}
           onPointerLeave={resume}
         >
           <div className="kc-rig" ref={rigRef}>
             <div className="kc-ring" data-ring="" aria-hidden="true" />
             <svg className="kc-charm" viewBox="0 0 200 200" aria-hidden="true" data-ring="">
-              <path d={CHARM} />
-              <circle cx="100" cy="100" r="30" />
+              <path d={CHARM} fillRule="evenodd" />
             </svg>
             {hung.map((m, i) => (
               <div key={i} className="kc-strand" style={{ transform: "scale(0.2)" }}>
@@ -510,7 +496,7 @@ export default function Team() {
             <div className={`kc-rail${out ? " is-out" : ""}`} ref={railRef} role="group" aria-label={`The ${people[0].team} team`}>
               <div className="kc-rail-track">
                 {hung.map((m) => (
-                  <div key={m.name} className="kc-rail-item" data-vp={m.name === vpName ? "" : undefined}>
+                  <div key={m.name} className="kc-rail-item">
                     <div className="kc-chain" aria-hidden="true">
                       <i />
                       <i className="side" />

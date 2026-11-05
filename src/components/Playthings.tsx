@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
-import { gearOutline } from "@/lib/gear";
+import { gearHole, gearOutline } from "@/lib/gear";
 import { asset } from "@/lib/asset";
 
 /**
@@ -100,12 +100,11 @@ export function GearTrain({ gears, place, scale = 1 }: { gears: TrainGear[]; pla
         const d =
           gearOutline(tip, { teeth: g.n, rTip: 1, rRoot: root, tipHalf: 0.82 / g.n, rootHalf: 1.5 / g.n })
             .map(([x, y], k) => `${k ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`)
-            .join(" ") + " Z";
+            .join(" ") + " Z" + gearHole(0, 0, Math.max(6, g.r * 0.24));
         return (
           <g key={i} data-gear="" transform={`translate(${g.x - x0} ${g.y - y0}) rotate(${(g.phase * 180) / Math.PI})`}>
-            <path d={d} fill={g.color} />
+            <path d={d} fill={g.color} fillRule="evenodd" />
             <circle r={g.r * 0.62} fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="2" />
-            <circle r={Math.max(6, g.r * 0.24)} fill="#fff" />
           </g>
         );
       })}
@@ -115,7 +114,7 @@ export function GearTrain({ gears, place, scale = 1 }: { gears: TrainGear[]; pla
 
 // ───────────── Geary pops up on the join and says something when you poke him
 
-const LINES = [
+export const GEARY_LINES = [
   "Hi, I’m Geary!",
   "Ship it!",
   "What problem are we solving?",
@@ -129,7 +128,7 @@ export function GearyPop({ src, place, size, peek, start = 0, flip }: { src: str
   const n = useRef(start);
   const timer = useRef(0);
   const poke = () => {
-    setSaid(LINES[n.current++ % LINES.length]);
+    setSaid(GEARY_LINES[n.current++ % GEARY_LINES.length]);
     setHop((h) => h + 1);
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setSaid(null), 2600);
