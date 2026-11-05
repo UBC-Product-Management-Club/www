@@ -100,7 +100,10 @@ const FILES = import.meta.glob<Record<string, unknown>>(["./team/*.json", "!./te
 
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 
-const ROSTER: Member[] = Object.entries(FILES).map(([file, d]) => {
+/** File sync can leave a copy like "jane-doe 2.json" beside the original; it mustn't put anyone on the team twice. */
+const isSyncCopy = (file: string) => / \d+\.json$/.test(file);
+
+const ROSTER: Member[] = Object.entries(FILES).filter(([file]) => !isSyncCopy(file)).map(([file, d]) => {
   const name = str(d.name), role = str(d.role), team = d.team as Team;
   if (!name || !role) throw new Error(`${file}: "name" and "role" are required`);
   if (!TEAMS.includes(team)) throw new Error(`${file}: "team" must be one of ${TEAMS.join(", ")}, not ${JSON.stringify(d.team)}`);

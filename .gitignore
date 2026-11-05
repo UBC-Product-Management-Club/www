@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# copies left by file sync (e.g. "Hero 2.tsx")
+* [0-9].*
