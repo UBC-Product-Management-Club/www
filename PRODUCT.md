@@ -33,7 +33,7 @@ Canada's largest product management club. Founded in 2020; uses industry connect
 ## Capabilities and Constraints
 
 - No backend in this repo; join flows are external links.
-- Team roster changes yearly: the 2026/27 roster (45 people, from the club's "PMC 26 27" Notion export) is `TEAM` in `src/data/site.ts`, headshots in `public/team/`. Each member picks an emoji for their card; a few are still to be collected.
+- Team roster changes yearly: the 2026/27 roster (47 people, from the club's "PMC 26 27" Notion export) is `TEAM` in `src/data/site.ts`, headshots in `public/team/`. Each member picks an emoji for their card; a few are still to be collected.
 - Stats (600+ students impacted, 32+ events since 2023, 100+ active members) come from the club's earlier site draft.
 
 ## Brand Commitments

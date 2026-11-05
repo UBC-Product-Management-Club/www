@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Ray Tandjung",
+  "team": "Marketing",
+  "role": "Design Director",
+  "emoji": null,
+  "photo": "ray-tandjung.webp",
+  "url": "https://www.linkedin.com/in/raytandjung/",
+  "order": 10
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Kai Earn",
+  "team": "Marketing",
+  "role": "Design Director",
+  "emoji": null,
+  "photo": "kai-earn.webp",
+  "url": "https://www.linkedin.com/in/kai-earn/",
+  "order": 9
+}
