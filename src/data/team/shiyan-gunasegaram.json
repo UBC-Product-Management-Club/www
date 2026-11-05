@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Shiyan Gunasegaram",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": "🎸",
+  "photo": "shiyan-gunasegaram.webp",
+  "url": "https://shiyan-portifolo.vercel.app/",
+  "order": 9
+}

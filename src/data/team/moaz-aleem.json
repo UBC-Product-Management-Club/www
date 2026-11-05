@@ -2,9 +2,9 @@
   "$schema": "./member.schema.json",
   "name": "Moaz Aleem",
   "team": "Partnerships",
-  "role": "Partnerships",
+  "role": "Corporate Outreach Director",
   "emoji": null,
-  "photo": null,
-  "url": null,
+  "photo": "moaz-aleem.webp",
+  "url": "https://www.linkedin.com/in/moaz-aleem",
   "order": 3
 }

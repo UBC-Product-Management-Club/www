@@ -1,0 +1,10 @@
+{
+  "$schema": "./member.schema.json",
+  "name": "Karen Agustino",
+  "team": "Advisors",
+  "role": "Advisor",
+  "emoji": "🌸",
+  "photo": "karen-agustino.webp",
+  "url": "https://www.linkedin.com/in/karenagustino/",
+  "order": 8
+}

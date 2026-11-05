@@ -2,9 +2,9 @@
   "$schema": "./member.schema.json",
   "name": "Steven Zhu",
   "team": "Partnerships",
-  "role": "Partnerships",
+  "role": "Corporate Outreach Director",
   "emoji": null,
-  "photo": null,
-  "url": null,
+  "photo": "steven-zhu.webp",
+  "url": "https://linkedin.com/in/sttevenzhu/",
   "order": 2
 }
