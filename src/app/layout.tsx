@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
-import { asset } from "@/lib/asset";
+import { asset, BASE } from "@/lib/asset";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -15,10 +15,12 @@ const description =
   "UBC Product Management Club: events, mentorship and industry connections for students preparing for product roles. Become a member today.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ubcpmc.com"),
+  // share images need a full URL; a base path means this is the GitHub Pages staging build
+  metadataBase: new URL(BASE ? "https://ubc-product-management-club.github.io" : "https://ubcpmc.com"),
   title,
   description,
   openGraph: { title, description, url: "/", siteName: "UBC PMC", type: "website" },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 export const viewport: Viewport = {
