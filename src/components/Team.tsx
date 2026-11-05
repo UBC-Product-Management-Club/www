@@ -15,7 +15,7 @@ const SETS: Member[][] = TEAMS.map((t) => TEAM.filter((m) => m.team === t)).filt
 const holdFor = (n: number) => 1860 + n * 150;
 /** How long the keychain takes to spin round to the next team, who swap on at the halfway mark, its back to you (ms). */
 const SPIN = 600;
-/** The same change as a plain fade, for reduced motion (ms). */
+/** The same change as a plain fade, for the phone rail and reduced motion (ms). */
 const FADE = 480;
 /** The phone rail's speed (px/s, about a person every two seconds), and its pause on the last person before the next team (ms). */
 const RAIL_SPEED = 95;
@@ -153,21 +153,22 @@ export default function Team() {
   }));
   const strandsRef = useRef(strands);
 
-  /** Spin the keychain round, swapping in team k behind its back. The burst out of the ring only happens once, on arrival. */
+  /** Spin the keychain round (or fade), swapping in team k behind its back. The burst out of the ring only happens once, on arrival. */
   const go = (k: number) => {
     const L = live.current;
     const next = (k + SETS.length) % SETS.length;
     if (L.busy || next === L.set) return;
-    const turn = reduced ? FADE : SPIN;
+    const spins = !reduced && !phone; // the phone rail and reduced motion just fade across
+    const turn = spins ? SPIN : FADE;
     L.busy = true;
     L.hold = 0;
-    L.spunAt = reduced ? -1 : 0; // the animation loop starts the clock
+    L.spunAt = spins ? 0 : -1; // the animation loop starts the clock
     setOut(true);
     window.setTimeout(() => {
       L.set = next;
       L.n = SETS[next].length;
       setSet(next);
-      if (reduced) setOut(false);
+      if (!spins) setOut(false);
     }, turn / 2);
     window.setTimeout(() => {
       setOut(false);

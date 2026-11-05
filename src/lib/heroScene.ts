@@ -52,6 +52,8 @@ const FLOAT: [number, number, number, number, number, number][] = [
 const easeIn = (x: number) => x * x * x;
 /** How far back the camera stands, per layout. */
 const CAM_Z = { wide: 5.4, phone: 7.2 };
+/** How far through the dive the eye fully covers the window. */
+const COVERED = 0.97;
 
 export type HeroParts = {
   section: HTMLElement;
@@ -234,6 +236,8 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
     pin.style.setProperty("--gy", `${cy.toFixed(1)}px`);
     pin.style.setProperty("--gr", `${((size.h * pxPerUnit * mark.scale) / 2).toFixed(1)}px`);
   };
+  // decoded up front, so the picture doesn't stall the dive the moment the eye first opens
+  world.querySelector("img")?.decode().catch(() => {});
   let shot = pickEyeShot();
   const resize = () => {
     shot = pickEyeShot();
@@ -277,6 +281,10 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
     const p = reduce || span <= 0 ? 0 : clamp01(-box.top / span);
     // the stage steps aside at the very end, revealing the real section right where its copy was
     pin.classList.toggle("gone", !reduce && p >= 0.999);
+    // everything idle while the dive runs comes off the GPU's plate: the toys' shadows and bobbing, the headline's
+    // shimmer, and the real events behind the opaque stage, which come back just before they're revealed
+    pin.classList.toggle("diving", !reduce && p > 0.01);
+    section.classList.toggle("covered", !reduce && p < 0.9);
     const centre = easeInOut(range(p, 0, 0.3)); // Geary steps to centre stage
     const still = p < 0.02;
     if (still !== sharp) {
@@ -365,9 +373,9 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
         // finish the cover once the eye fills the screen: exactly far enough to reach the farthest corner of the
         // window, so a tall phone screen is covered as surely as a wide one
         const reach = Math.hypot(Math.max(cx, w - cx) / ex, Math.max(cy, h - cy) / ey);
-        const grow = THREE.MathUtils.lerp(1, Math.max(1, reach * 1.02), range(dive, 0.82, 0.97));
+        const grow = THREE.MathUtils.lerp(1, Math.max(1, reach * 1.02), range(dive, 0.82, COVERED));
         const rx = ex * grow, ry = ey * grow;
-        portal.style.clipPath = dive > 0.995 ? "none" : `ellipse(${rx.toFixed(1)}px ${ry.toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)`;
+        portal.style.clipPath = dive >= COVERED ? "none" : `ellipse(${rx.toFixed(1)}px ${ry.toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)`;
         portal.style.opacity = String(range(dive, 0.35, 0.55));
 
         // a flat picture of the events section lives inside the eye: small with its title centred in the pupil,
@@ -391,8 +399,8 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
     // the stickers around Geary blow past the camera with it
     toys.style.opacity = String(1 - fade);
     toys.style.transform = `scale(${1 + fade * 0.7})`;
-    toys.style.visibility = fade >= 1 ? "hidden" : "visible";
-    if (dive < 0.995) renderer.render(scene, camera); // nothing to draw once the eye covers the screen
+    toys.style.display = fade >= 1 ? "none" : "";
+    if (dive < COVERED) renderer.render(scene, camera); // nothing to draw once the eye covers the screen
   };
   raf = requestAnimationFrame(frame);
 

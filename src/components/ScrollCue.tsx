@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { gearHole, gearPath } from "@/lib/gear";
 import { easeInOutSine } from "@/lib/motion";
 
@@ -39,7 +39,6 @@ function glide(to: number, ms: number) {
 export default function ScrollCue() {
   const [shown, setShown] = useState(false);
   const [top, setTop] = useState(true);
-  const gear = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     const join = document.querySelector("#join")!;
@@ -55,7 +54,6 @@ export default function ScrollCue() {
       const atTop = window.scrollY < 8;
       setTop(atTop);
       setShown(atTop);
-      gear.current!.style.transform = `rotate(${(window.scrollY * 0.2).toFixed(1)}deg)`;
       window.clearTimeout(timer);
       if (!atTop) timer = window.setTimeout(() => setShown(join.getBoundingClientRect().top > window.innerHeight * 0.8), wait());
     };
@@ -77,7 +75,7 @@ export default function ScrollCue() {
 
   return (
     <button type="button" className={`cue${shown ? " on" : ""}`} onClick={next} tabIndex={-1} aria-hidden="true">
-      <svg className="cue-gear" ref={gear} viewBox="0 0 100 100">
+      <svg className="cue-gear" viewBox="0 0 100 100">
         <path d={GEAR} fillRule="evenodd" />
       </svg>
       <span>{top ? "Scroll to dive in" : "Keep scrolling"}</span>
