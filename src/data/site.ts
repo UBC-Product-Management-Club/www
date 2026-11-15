@@ -43,8 +43,9 @@ export type Upcoming = {
   dates: string;
   href: string;
   sticker?: EventSticker["id"];
-  /** One sheet per day; more than one day adds a Day 1 / Day 2 toggle. `date` (YYYY-MM-DD) opens the right day during the event. */
-  schedule: { day: string; date: string; items: [string, string][] }[];
+  /** One sheet per day; more than one day adds a Day 1 / Day 2 toggle. `date` (YYYY-MM-DD) opens the right day during the event.
+   *  An item marked "key" (a deadline, the finals) is highlighted on the sheet. */
+  schedule: { day: string; date: string; items: [time: string, what: string, key?: "key"][] }[];
 };
 
 /** Shown in "Up next" until `end` passes. Source: ubcpmc.com/productjackpot. Add the next event below when it is announced. */
@@ -62,12 +63,29 @@ export const UPCOMING: Upcoming[] = [
         day: "Saturday, November 21",
         date: "2026-11-21",
         items: [
-          ["9:00 am", "Registration"],
-          ["9:30 am", "Opening ceremonies"],
-          ["10:00 am", "Kickoff"],
+          ["9:00 am", "Team formation"],
+          ["9:15 am", "Check-in"],
+          ["9:30 am", "Breakfast"],
+          ["9:45 am", "Opening ceremony"],
+          ["10:15 am", "Kickoff"],
+          ["10:45 am", "Mentor rotations"],
           ["12:00 pm", "Lunch"],
-          ["3:00 pm", "Workshop"],
-          ["4:00 pm", "Mentorship"],
+          ["1:00 pm", "Mentor office hours"],
+          ["2:00 pm", "Networking"],
+        ],
+      },
+      {
+        day: "Sunday, November 22",
+        date: "2026-11-22",
+        items: [
+          ["9:30 am", "Breakfast"],
+          ["10:00 am", "Check-in deadline"],
+          ["12:00 pm", "Submission deadline", "key"],
+          ["12:15 pm", "Lunch and first round judging"],
+          ["1:30 pm", "Finalists announced"],
+          ["1:55 pm", "Final presentations", "key"],
+          ["3:00 pm", "TypeRacer & Higher or Lower"],
+          ["3:30 pm", "Closing ceremony"],
         ],
       },
     ],

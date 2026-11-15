@@ -142,8 +142,8 @@ export default function Upcoming() {
               >
                 <h4>{d.day}</h4>
                 <ol>
-                  {d.items.map(([t, what]) => (
-                    <li key={t + what}>
+                  {d.items.map(([t, what, key]) => (
+                    <li key={t + what} className={key ? "up-key" : undefined}>
                       <time>{t}</time>
                       <span>{what}</span>
                     </li>

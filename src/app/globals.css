@@ -2734,6 +2734,16 @@ a.kc-face:focus-visible .kc-open {
   border-top: 1px solid rgba(29, 24, 56, 0.1);
   font-size: 0.95rem;
 }
+/* the big moments are run over with a highlighter */
+.up-day li.up-key span {
+  justify-self: start;
+  padding: 0 4px;
+  margin-inline: -4px;
+  border-radius: 3px;
+  background: linear-gradient(100deg, rgba(228, 64, 94, 0.08), rgba(228, 64, 94, 0.22) 8%, rgba(228, 64, 94, 0.18) 92%, rgba(228, 64, 94, 0.06));
+  font-weight: 600;
+  box-decoration-break: clone;
+}
 .up-day time {
   color: #4b58c4;
   font-weight: 600;
@@ -2752,6 +2762,10 @@ a.kc-face:focus-visible .kc-open {
   color: var(--on-ink-mute);
 }
 @media (max-width: 860px) {
+  /* stacked, the schedule ends the section, right where the Geary sticker hangs over the board's edge */
+  .upcoming {
+    padding-bottom: 150px;
+  }
   .up-grid {
     grid-template-columns: 1fr;
   }
