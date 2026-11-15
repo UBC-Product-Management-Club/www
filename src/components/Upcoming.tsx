@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+import { useState, type KeyboardEvent } from "react";
 import { LINKS, UPCOMING } from "@/data/site";
 import { useNow } from "@/lib/clock";
 import { asset } from "@/lib/asset";
@@ -9,9 +10,13 @@ import { Arrow } from "./icons";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** The calendar date in Vancouver, where the events happen, as YYYY-MM-DD. */
+const vanDate = (ms: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Vancouver" }).format(ms);
+
 export default function Upcoming() {
   const now = useNow();
   const ev = UPCOMING.find((e) => now === null || Date.parse(e.end) > now);
+  const [picked, setPicked] = useState<number | null>(null);
 
   if (!ev) {
     return (
@@ -38,6 +43,22 @@ export default function Upcoming() {
           [Math.floor(ms / 60_000) % 60, "min"],
           [Math.floor(ms / 1000) % 60, "sec"],
         ];
+
+  // until someone picks a day, show the one that's happening today (day 1 before the event starts)
+  const today = now === null ? -1 : ev.schedule.findIndex((d) => d.date === vanDate(now));
+  const shown = Math.min(picked ?? Math.max(today, 0), ev.schedule.length - 1);
+  const tabs = ev.schedule.length > 1;
+  const pick = (i: number) => {
+    setPicked(i);
+    document.getElementById(`up-tab-${i}`)?.focus();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    const n = ev.schedule.length;
+    const to = { ArrowRight: shown + 1, ArrowLeft: shown - 1 + n, Home: 0, End: n - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    pick(to % n);
+  };
 
   return (
     <section className="upcoming" id="upcoming" aria-labelledby="up-h">
@@ -87,19 +108,50 @@ export default function Upcoming() {
               <StickerArt id={ev.sticker} uid="up-chip" />
             </div>
           )}
-          {ev.schedule.map((d) => (
-            <div key={d.day} className="up-day">
-              <h4>{d.day}</h4>
-              <ol>
-                {d.items.map(([t, what]) => (
-                  <li key={t}>
-                    <time>{t}</time>
-                    <span>{what}</span>
-                  </li>
-                ))}
-              </ol>
+          {tabs && (
+            <div className="up-days" role="tablist" aria-label="Schedule day" onKeyDown={onKey}>
+              {ev.schedule.map((d, i) => (
+                <button
+                  key={d.day}
+                  id={`up-tab-${i}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === shown}
+                  aria-controls={`up-sheet-${i}`}
+                  tabIndex={i === shown ? 0 : -1}
+                  onClick={() => setPicked(i)}
+                >
+                  Day {i + 1}
+                  <span>{d.day.split(",")[0].slice(0, 3)}</span>
+                </button>
+              ))}
             </div>
-          ))}
+          )}
+          {/* every day's sheet sits in the same spot; the picked one is pinned up and the rest lift off */}
+          <div className="up-sheets">
+            {ev.schedule.map((d, i) => (
+              <div
+                key={d.day}
+                id={`up-sheet-${i}`}
+                className="up-day"
+                data-day={i}
+                data-shown={i === shown}
+                role={tabs ? "tabpanel" : undefined}
+                aria-labelledby={tabs ? `up-tab-${i}` : undefined}
+                inert={i !== shown}
+              >
+                <h4>{d.day}</h4>
+                <ol>
+                  {d.items.map(([t, what]) => (
+                    <li key={t + what}>
+                      <time>{t}</time>
+                      <span>{what}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

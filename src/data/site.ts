@@ -43,7 +43,8 @@ export type Upcoming = {
   dates: string;
   href: string;
   sticker?: EventSticker["id"];
-  schedule: { day: string; items: [string, string][] }[];
+  /** One sheet per day; more than one day adds a Day 1 / Day 2 toggle. `date` (YYYY-MM-DD) opens the right day during the event. */
+  schedule: { day: string; date: string; items: [string, string][] }[];
 };
 
 /** Shown in "Up next" until `end` passes. Source: ubcpmc.com/productjackpot. Add the next event below when it is announced. */
@@ -59,6 +60,7 @@ export const UPCOMING: Upcoming[] = [
     schedule: [
       {
         day: "Saturday, November 21",
+        date: "2026-11-21",
         items: [
           ["9:00 am", "Registration"],
           ["9:30 am", "Opening ceremonies"],
