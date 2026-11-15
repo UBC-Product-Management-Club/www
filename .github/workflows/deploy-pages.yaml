@@ -1,11 +1,17 @@
-name: Deploy staging to GitHub Pages
+name: Deploy ubcpmc.com (prod + staging)
 
-# Every push to main publishes the site to https://<org>.github.io/www/ as a shareable staging link.
-# One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# Two branches, one Pages site:
+#   staging → https://ubcpmc.com/staging/   push here to try changes
+#   main    → https://ubcpmc.com            prod; only changes by merging a pull request from staging
+# A repo has a single Pages site, so every deploy builds both branches into it: main at the root, staging under
+# /staging (hidden from search engines). Pushing either branch republishes both, so they never drift apart.
+# One-time setup: Settings → Pages → Source "GitHub Actions"; Settings → Environments → github-pages allows the
+# main and staging branches to deploy.
 on:
   push:
     branches:
       - main
+      - staging
   workflow_dispatch:
 
 permissions:
@@ -19,47 +25,70 @@ concurrency:
 
 jobs:
   build:
-    name: Build static site
+    name: Build prod and staging
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout main (prod)
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: prod
+
+      - name: Checkout staging
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+          path: staging
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            prod/package-lock.json
+            staging/package-lock.json
 
       - name: Configure Pages
-        id: pages
         uses: actions/configure-pages@v5
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
+      - name: Build prod
+        working-directory: prod
+        run: npm ci && npm run build
         env:
           NEXT_OUTPUT: export
-          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_BASE_PATH: ""
 
-      # Catch a build whose images or Geary model would 404 under the base path before it goes live
-      - name: Check asset paths
+      - name: Build staging
+        working-directory: staging
+        run: npm ci && npm run build
         env:
-          BASE: ${{ steps.pages.outputs.base_path }}
+          NEXT_OUTPUT: export
+          NEXT_PUBLIC_BASE_PATH: /staging
+
+      # Catch a build whose images or Geary model would 404 under its base path before it goes live
+      - name: Check asset paths
         run: |
           set -e
-          test -f out/models/geary.glb
-          # images and the Geary model share asset(), so a prefixed <img> means the model URL is prefixed too
-          grep -q "src=\"$BASE/brand/pmc-logo" out/index.html || { echo "asset URLs are missing the '$BASE' prefix"; exit 1; }
-          echo "Assets are served under '$BASE/'"
+          for site in "prod:" "staging:/staging"; do
+            dir=${site%%:*}; base=${site#*:}
+            test -f $dir/out/models/geary.glb
+            # images and the Geary model share asset(), so a prefixed <img> means the model URL is prefixed too
+            grep -q "src=\"$base/brand/pmc-logo" $dir/out/index.html || { echo "$dir: asset URLs are missing the '$base' prefix"; exit 1; }
+          done
+
+      - name: Put staging under /staging
+        run: |
+          set -e
+          cp -R staging/out prod/out/staging
+          # keep staging out of search results, so it never competes with prod
+          printf 'User-agent: *\nDisallow: /staging/\n' > prod/out/robots.txt
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: ./prod/out
 
   deploy:
     name: Deploy

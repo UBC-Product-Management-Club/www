@@ -29,7 +29,7 @@ Canada's largest product management club. Founded in 2020; uses industry connect
 - Volunteer as a PM / become a mentor: https://forms.gle/R5Utwtev718pUACw6
 - Event pages: https://ubcpmc.com/productnight, /productheist, /productconference, /productsprint, /productjackpot
 - Partnerships: partnerships@ubcpmc.com. General: connect@ubcpmc.com.
-- Hosting: GitHub Pages at ubcpmc.com, DNS at Namecheap. Framer is retired; `/productjackpot` embeds the `event-webpages` site. Old Framer URLs are redirected by `src/app/not-found.tsx`.
+- Hosting: GitHub Pages, DNS at Namecheap. Push to the `staging` branch to update https://ubcpmc.com/staging/ (hidden from search); prod (https://ubcpmc.com) only changes when a pull request from `staging` is merged into `main`, which is protected. Framer is retired; `/productjackpot` embeds the `event-webpages` site. Old Framer URLs are redirected by `src/app/not-found.tsx`; old event page links open their Instagram recaps.
 
 ## Capabilities and Constraints
 
