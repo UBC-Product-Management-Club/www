@@ -150,37 +150,22 @@ export function GearyPop({ src, place, size, peek, start = 0, flip }: { src: str
   );
 }
 
-// ───────────── Geary as a die-cut sticker: peel him off, stick him anywhere, tap him and he still talks
+// ───────────── Geary as a die-cut sticker: peel him off and stick him anywhere. A quiet one: only the other Gearys talk
 
-export function GearySticker({ src, place, size, start = 0, tilt = -7 }: { src: string; place: Place; size: number; start?: number; tilt?: number }) {
-  const [said, setSaid] = useState<string | null>(null);
-  const n = useRef(start);
-  const timer = useRef(0);
+export function GearySticker({ src, place, size, tilt = -7 }: { src: string; place: Place; size: number; tilt?: number }) {
   const at = useRef({ x: 0, y: 0 });
-  const held = useRef<{ px: number; py: number; ox: number; oy: number; moved: number } | null>(null);
-  const dragged = useRef(false);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const held = useRef<{ px: number; py: number; ox: number; oy: number } | null>(null);
 
-  const say = () => {
-    setSaid(GEARY_LINES[n.current++ % GEARY_LINES.length]);
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setSaid(null), 2600);
-  };
   const down = (e: React.PointerEvent<HTMLElement>) => {
     if (e.button !== 0) return;
-    held.current = { px: e.clientX, py: e.clientY, ox: at.current.x, oy: at.current.y, moved: 0 };
-    dragged.current = false;
+    held.current = { px: e.clientX, py: e.clientY, ox: at.current.x, oy: at.current.y };
     e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.classList.add("held");
   };
   const move = (e: React.PointerEvent<HTMLElement>) => {
     const h = held.current;
     if (!h) return;
-    const dx = e.clientX - h.px, dy = e.clientY - h.py;
-    h.moved = Math.max(h.moved, Math.hypot(dx, dy));
-    if (h.moved < 6) return;
-    dragged.current = true;
-    e.currentTarget.classList.add("held");
-    at.current = { x: h.ox + dx, y: h.oy + dy };
+    at.current = { x: h.ox + e.clientX - h.px, y: h.oy + e.clientY - h.py };
     e.currentTarget.style.setProperty("--x", `${at.current.x}px`);
     e.currentTarget.style.setProperty("--y", `${at.current.y}px`);
   };
@@ -190,22 +175,17 @@ export function GearySticker({ src, place, size, start = 0, tilt = -7 }: { src: 
   };
 
   return (
-    <button
-      type="button"
+    <span
       className="toy geary-sticker"
       style={{ ...placeStyle(place, size), "--tilt": `${tilt}deg` } as React.CSSProperties}
       onPointerDown={down}
       onPointerMove={move}
       onPointerUp={up}
       onPointerCancel={up}
-      onClick={() => (dragged.current ? (dragged.current = false) : say())}
-      aria-label="Geary sticker. Drag to move; press to say hi"
+      aria-hidden="true"
     >
       <img src={src} alt="" width={size} height={size} draggable={false} />
-      <span className={`bubble${said ? " on" : ""}`} role="status">
-        {said}
-      </span>
-    </button>
+    </span>
   );
 }
 

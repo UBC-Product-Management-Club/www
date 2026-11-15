@@ -6,7 +6,8 @@ import { PHOTOS, TEAM, TEAMS, type Member } from "@/data/site";
 import { gearHole, gearPath } from "@/lib/gear";
 import { easeInOut, useMedia } from "@/lib/motion";
 import { useAutoScroll } from "@/lib/useAutoScroll";
-import { External } from "./icons";
+import { Arrow, ArrowLeft, External, Pause, Play } from "./icons";
+import { asset } from "@/lib/asset";
 
 /** Every team hangs whole on the ring: Tech's eight, the two Co-Presidents. */
 const SETS: Member[][] = TEAMS.map((t) => TEAM.filter((m) => m.team === t)).filter((s) => s.length);
@@ -119,13 +120,14 @@ function Card({ m }: { m: Member }) {
 export default function Team() {
   const [set, setSet] = useState(0);
   const [out, setOut] = useState(false);
+  const [chosen, setPlaying] = useState(true);
+  const [all, setAll] = useState(false);
   const [width, setWidth] = useState(1000);
   // the card's height beyond its photo (name, role, padding), measured once the cards are on the page
   const [extra, setExtra] = useState(104);
-  // no autoplay for reduced motion; the team buttons still change teams. Otherwise it holds while a card is
-  // hovered or the section has keyboard focus, so nobody needs a pause button to read a card
+  // no autoplay for reduced motion; the team buttons and arrows still change teams
   const reduced = useMedia("(prefers-reduced-motion: reduce)", true);
-  const playing = !reduced;
+  const playing = chosen && !reduced;
   const stageRef = useRef<HTMLDivElement>(null);
   const rigRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
@@ -399,38 +401,56 @@ export default function Team() {
 
   return (
     <section className="team" id="team" aria-labelledby="team-h" onFocus={focusIn} onBlur={resume}>
+      <div className="team-props" aria-hidden="true">
+        <img src={asset("/gears/orchid-9.webp")} alt="" />
+      </div>
       <div className="wrap team-top">
         <div className="team-copy">
           <h2 id="team-h">Meet the team</h2>
           <p className="lede">The cogs that work together to make PMC happen. Click anyone to say hi.</p>
+
+          <div className="kc-nav">
+            <div className="kc-teams" role="group" aria-label="Choose a team">
+              {SETS.map((g, k) => (
+                <button key={g[0].team} type="button" aria-pressed={k === set} onClick={() => go(k)}>
+                  {g[0].team}
+                </button>
+              ))}
+            </div>
+            <div className="kc-bar">
+              <p className="kc-now" aria-live="polite">
+                <b>{people[0].team}</b>
+                <span>
+                  {people.length} {people.length === 1 ? "member" : "members"}
+                </span>
+              </p>
+              <div className="kc-controls">
+                <button type="button" className="icon-btn glass" aria-label="Previous team" onClick={() => go(set - 1)}>
+                  <ArrowLeft />
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn glass"
+                  aria-label={playing ? "Pause the keychain" : "Play the keychain"}
+                  onClick={() => setPlaying((p) => !p)}
+                >
+                  {playing ? <Pause /> : <Play />}
+                </button>
+                <button type="button" className="icon-btn glass" aria-label="Next team" onClick={() => go(set + 1)}>
+                  <Arrow />
+                </button>
+              </div>
+            </div>
+            <div className="kc-dots" ref={dotsRef} aria-hidden="true" {...swipeHandlers}>
+              {SETS.map((g, k) => (
+                <span key={k} className={k === set ? "on" : k < set ? "done" : ""}>
+                  <i />
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* the teams take turns on their own; a team's button jumps straight to it, the bar shows how long it stays */}
-        <div className="kc-nav">
-          <div className="kc-teams" role="group" aria-label="Choose a team">
-            {SETS.map((g, k) => (
-              <button key={g[0].team} type="button" aria-pressed={k === set} onClick={() => go(k)}>
-                {g[0].team}
-              </button>
-            ))}
-          </div>
-          <p className="kc-now" aria-live="polite">
-            <b>{people[0].team}</b>
-            <span>
-              {people.length} {people.length === 1 ? "member" : "members"}
-            </span>
-          </p>
-          <div className="kc-dots" ref={dotsRef} aria-hidden="true" {...swipeHandlers}>
-            {SETS.map((g, k) => (
-              <span key={k} className={k === set ? "on" : k < set ? "done" : ""}>
-                <i />
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="wrap team-body">
         <div className="team-photos" aria-label="PMC photos">
           <figure className="team-pic">
             <img src={PHOTOS.group.src} alt={PHOTOS.group.alt} loading="lazy" />
@@ -441,62 +461,89 @@ export default function Team() {
             <figcaption>Event day</figcaption>
           </figure>
         </div>
+      </div>
 
-        <div className="kc-col">
-          <div
-            className={`kc-stage${out ? " is-out" : ""}`}
-            ref={stageRef}
-            tabIndex={0}
-            style={{ height: geo.height, "--cw": `${geo.cw}px` } as React.CSSProperties}
-            aria-label={`The ${people[0].team} keychain. Drag or use the arrow keys to twist it; drag the ring to swing it.`}
-            onPointerOver={hoverCard}
-            onPointerLeave={resume}
-          >
-            <div className="kc-rig" ref={rigRef}>
-              <div className="kc-ring" data-ring="" aria-hidden="true" />
-              <svg className="kc-charm" viewBox="0 0 200 200" aria-hidden="true" data-ring="">
-                <path d={CHARM} fillRule="evenodd" />
-              </svg>
-              {hung.map((m, i) => (
-                <div key={i} className="kc-strand" style={{ transform: "scale(0.2)" }}>
-                  <div className="kc-chain" aria-hidden="true">
-                    {Array.from({ length: strands[i].links }, (_, j) => (
-                      <i key={j} className={j % 2 ? "side" : ""} />
-                    ))}
-                  </div>
-                  <div className="kc-hang" style={{ top: strands[i].links * LINK }}>
-                    <Card key={m.name} m={m} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {phone && (
-            <>
-              <div className={`kc-rail${out ? " is-out" : ""}`} ref={railRef} role="group" aria-label={`The ${people[0].team} team`}>
-                <div className="kc-rail-track">
-                  {hung.map((m) => (
-                    <div key={m.name} className="kc-rail-item">
-                      <div className="kc-chain" aria-hidden="true">
-                        <i />
-                        <i className="side" />
-                        <i />
-                      </div>
-                      <Card m={m} />
-                    </div>
+      <div className="wrap kc-col">
+        <div
+          className={`kc-stage${out ? " is-out" : ""}`}
+          ref={stageRef}
+          tabIndex={0}
+          style={{ height: geo.height, "--cw": `${geo.cw}px` } as React.CSSProperties}
+          aria-label={`The ${people[0].team} keychain. Drag or use the arrow keys to twist it; drag the ring to swing it.`}
+          onPointerOver={hoverCard}
+          onPointerLeave={resume}
+        >
+          <div className="kc-rig" ref={rigRef}>
+            <div className="kc-ring" data-ring="" aria-hidden="true" />
+            <svg className="kc-charm" viewBox="0 0 200 200" aria-hidden="true" data-ring="">
+              <path d={CHARM} fillRule="evenodd" />
+            </svg>
+            {hung.map((m, i) => (
+              <div key={i} className="kc-strand" style={{ transform: "scale(0.2)" }}>
+                <div className="kc-chain" aria-hidden="true">
+                  {Array.from({ length: strands[i].links }, (_, j) => (
+                    <i key={j} className={j % 2 ? "side" : ""} />
                   ))}
                 </div>
+                <div className="kc-hang" style={{ top: strands[i].links * LINK }}>
+                  <Card key={m.name} m={m} />
+                </div>
               </div>
-              {people.length > 1 && (
-                <p className="kc-rail-hint" aria-hidden="true">
-                  Swipe to see everyone
-                </p>
-              )}
-            </>
-          )}
-          <p className="kc-hint" aria-hidden="true" {...swipeHandlers}>
-            Swipe here for the next team
-          </p>
+            ))}
+          </div>
+        </div>
+        {phone && (
+          <>
+            <div className={`kc-rail${out ? " is-out" : ""}`} ref={railRef} role="group" aria-label={`The ${people[0].team} team`}>
+              <div className="kc-rail-track">
+                {hung.map((m) => (
+                  <div key={m.name} className="kc-rail-item">
+                    <div className="kc-chain" aria-hidden="true">
+                      <i />
+                      <i className="side" />
+                      <i />
+                    </div>
+                    <Card m={m} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {people.length > 1 && (
+              <p className="kc-rail-hint" aria-hidden="true">
+                Swipe to see everyone
+              </p>
+            )}
+          </>
+        )}
+        <p className="kc-hint" aria-hidden="true" {...swipeHandlers}>
+          Swipe here for the next team
+        </p>
+      </div>
+
+      <div className={`wrap team-all${all ? " open" : ""}`}>
+        <button type="button" className="team-all-btn" aria-expanded={all} aria-controls="team-all-list" onClick={() => setAll((o) => !o)}>
+          {all ? "Close" : `See the whole team (${TEAM.length})`}
+        </button>
+        <div className="team-all-fold" id="team-all-list" inert={!all}>
+          <ul>
+            {TEAM.map((m) => (
+              <li key={m.name}>
+                <span className="ta-photo">{m.photo ? <img src={m.photo} alt="" loading="lazy" /> : initials(m.name)}</span>
+                <span>
+                  {m.url ? (
+                    <a href={m.url} target="_blank" rel="noopener">
+                      {m.name}
+                    </a>
+                  ) : (
+                    <b>{m.name}</b>
+                  )}
+                  <small>
+                    {m.role} · {m.team}
+                  </small>
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

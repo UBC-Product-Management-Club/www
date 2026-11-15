@@ -341,21 +341,10 @@ main,
   background: var(--tint);
   color: var(--ink);
 }
-/* where you are: the section's link sits on a soft chip with a brand underline */
+/* where you are: the section's link sits on a soft chip */
 .nav a.l[aria-current] {
-  position: relative;
   background: var(--tint);
   color: var(--ink);
-}
-.nav a.l[aria-current]::after {
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 4px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--c1), var(--c3));
 }
 .nav .btn {
   margin-left: 6px;
@@ -1493,25 +1482,56 @@ main,
   color: var(--on-ink);
   padding-block: clamp(80px, 10vw, 130px) clamp(40px, 5vw, 70px);
 }
+.team-props {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.team-props img {
+  position: absolute;
+  height: auto;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.45));
+}
+.team-props img:nth-child(1) {
+  width: min(220px, 22vw);
+  right: 30%;
+  top: 44%;
+  rotate: 20deg;
+}
+.team-props img:nth-child(2) {
+  width: min(180px, 18vw);
+  right: 3%;
+  top: 18%;
+  rotate: 8deg;
+}
+@media (max-width: 899px) {
+  .team-props img:nth-child(1) {
+    width: 34vw;
+    right: auto;
+    left: -6vw;
+    top: 34%;
+  }
+  .team-props img:nth-child(2) {
+    width: 30vw;
+    right: -6vw;
+    top: 26%;
+  }
+}
 .team h2 {
   color: #fff;
 }
 .team .lede {
   color: var(--on-ink-mute);
 }
-/* the title on the left, the team picker across from it; below, the photos stand beside the keychain */
 .team-top {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
-  gap: 24px 56px;
-  align-items: end;
-}
-.team-body {
-  display: grid;
-  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
-  gap: clamp(24px, 4vw, 56px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: 32px 56px;
   align-items: center;
-  margin-top: clamp(20px, 3vw, 40px);
+}
+.kc-nav {
+  margin-top: 36px;
 }
 /* one button per team; the team on the keychain is lit */
 .kc-teams {
@@ -1564,6 +1584,13 @@ main,
   margin-top: 10px;
   touch-action: pan-y;
 }
+.kc-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
 .kc-dots span {
   flex: 1;
   min-width: 12px;
@@ -1594,16 +1621,19 @@ main,
 .kc-dots .on i::after {
   transform: scaleX(var(--fill));
 }
-/* two prints stacked down the side of the keychain */
+.kc-controls {
+  display: flex;
+  gap: 8px;
+}
 .team-photos {
   position: relative;
-  height: 470px;
+  height: 250px;
 }
 .team-pic {
   position: absolute;
   left: 0;
   top: 0;
-  width: 88%;
+  width: 60%;
   margin: 0;
   padding: 8px 8px 0;
   background: #fbfaf7;
@@ -1613,9 +1643,9 @@ main,
   transition: rotate 0.5s var(--ease), translate 0.5s var(--ease);
 }
 .team-pic + .team-pic {
-  left: 12%;
-  top: 220px;
-  rotate: 5deg;
+  left: 40%;
+  top: 56px;
+  rotate: 6deg;
 }
 .team-pic img {
   width: 100%;
@@ -1637,6 +1667,7 @@ main,
 .kc-col {
   position: relative;
   min-width: 0;
+  margin-top: 8px;
 }
 .kc-stage {
   position: relative;
@@ -1880,9 +1911,97 @@ a.kc-face:focus-visible .kc-open {
   color: var(--on-ink-mute);
   touch-action: pan-y;
 }
+.team-all {
+  margin-top: 64px;
+}
+.team-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: 500 0.92rem var(--body);
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+.team-all-btn:hover {
+  background: #fff;
+  border-color: #fff;
+  color: var(--ink);
+}
+/* the fold animates its height from 0 to its content's, and the list fades and rises in with it */
+.team-all-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s var(--ease);
+}
+.team-all.open .team-all-fold {
+  grid-template-rows: 1fr;
+}
+.team-all-fold > ul {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  translate: 0 -10px;
+  transition: opacity 0.35s ease-out, translate 0.5s var(--ease);
+}
+.team-all.open .team-all-fold > ul {
+  opacity: 1;
+  translate: 0 0;
+}
+.team-all ul {
+  list-style: none;
+  margin: 0;
+  padding: 28px 0 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px 20px;
+}
+.team-all li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  line-height: 1.3;
+}
+.team-all li > span:last-child {
+  display: grid;
+}
+.ta-photo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--c1), var(--c3));
+  color: #fff;
+  font: 700 0.85rem var(--head);
+}
+.ta-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.team-all a,
+.team-all b {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.team-all a:hover {
+  text-decoration: underline;
+}
+.team-all small {
+  font-size: 0.8rem;
+  color: var(--on-ink-mute);
+}
 @media (max-width: 899px) {
-  .team-top,
-  .team-body {
+  .team-top {
     grid-template-columns: minmax(0, 1fr);
   }
   .team-photos {
@@ -2788,10 +2907,8 @@ a.kc-face:focus-visible .kc-open {
 }
 /* Geary as a die-cut sticker: a white vinyl edge, lifted while held, and dragged anywhere on the page */
 .geary-sticker {
+  display: block;
   width: var(--size);
-  padding: 0;
-  border: 0;
-  background: none;
   cursor: grab;
   touch-action: none;
   translate: var(--x, 0px) var(--y, 0px);
@@ -2816,14 +2933,6 @@ a.kc-face:focus-visible .kc-open {
 .geary-sticker.held img {
   filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
     drop-shadow(0 24px 22px rgba(8, 5, 24, 0.4));
-}
-.geary-sticker:focus-visible {
-  outline: 2px dashed var(--c3);
-  outline-offset: 6px;
-  border-radius: 20px;
-}
-.geary-sticker .bubble {
-  rotate: calc(var(--tilt) * -1);
 }
 
 /* the conveyor: boxes ride from idea to v1.0, then drop off into "shipped" */
@@ -3318,7 +3427,8 @@ a.kc-face:focus-visible .kc-open {
 }
 @media (max-width: 640px) {
   .kc-stage,
-  .kc-hint {
+  .kc-hint,
+  .team-props {
     display: none;
   }
   .kc-rail {
