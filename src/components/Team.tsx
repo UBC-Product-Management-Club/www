@@ -407,7 +407,7 @@ export default function Team() {
       <div className="wrap team-top">
         <div className="team-copy">
           <h2 id="team-h">Meet the team</h2>
-          <p className="lede">The people behind UBC PMC, 2026/27. Click anyone to say hi.</p>
+          <p className="lede">The cogs that work together to make PMC happen. Click anyone to say hi.</p>
 
           <div className="kc-nav">
             <div className="kc-teams" role="group" aria-label="Choose a team">
@@ -421,7 +421,7 @@ export default function Team() {
               <p className="kc-now" aria-live="polite">
                 <b>{people[0].team}</b>
                 <span>
-                  {people.length} {people.length === 1 ? "person" : "people"}
+                  {people.length} {people.length === 1 ? "member" : "members"}
                 </span>
               </p>
               <div className="kc-controls">

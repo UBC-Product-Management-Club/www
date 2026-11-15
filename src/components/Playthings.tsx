@@ -150,6 +150,45 @@ export function GearyPop({ src, place, size, peek, start = 0, flip }: { src: str
   );
 }
 
+// ───────────── Geary as a die-cut sticker: peel him off and stick him anywhere. A quiet one: only the other Gearys talk
+
+export function GearySticker({ src, place, size, tilt = -7 }: { src: string; place: Place; size: number; tilt?: number }) {
+  const at = useRef({ x: 0, y: 0 });
+  const held = useRef<{ px: number; py: number; ox: number; oy: number } | null>(null);
+
+  const down = (e: React.PointerEvent<HTMLElement>) => {
+    if (e.button !== 0) return;
+    held.current = { px: e.clientX, py: e.clientY, ox: at.current.x, oy: at.current.y };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.classList.add("held");
+  };
+  const move = (e: React.PointerEvent<HTMLElement>) => {
+    const h = held.current;
+    if (!h) return;
+    at.current = { x: h.ox + e.clientX - h.px, y: h.oy + e.clientY - h.py };
+    e.currentTarget.style.setProperty("--x", `${at.current.x}px`);
+    e.currentTarget.style.setProperty("--y", `${at.current.y}px`);
+  };
+  const up = (e: React.PointerEvent<HTMLElement>) => {
+    held.current = null;
+    e.currentTarget.classList.remove("held");
+  };
+
+  return (
+    <span
+      className="toy geary-sticker"
+      style={{ ...placeStyle(place, size), "--tilt": `${tilt}deg` } as React.CSSProperties}
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerCancel={up}
+      aria-hidden="true"
+    >
+      <img src={src} alt="" width={size} height={size} draggable={false} />
+    </span>
+  );
+}
+
 // ───────────── a little conveyor shipping work from idea to v1.0
 
 const BOXES = ["Idea", "MVP", "Beta", "v1.0"];

@@ -341,6 +341,11 @@ main,
   background: var(--tint);
   color: var(--ink);
 }
+/* where you are: the section's link sits on a soft chip */
+.nav a.l[aria-current] {
+  background: var(--tint);
+  color: var(--ink);
+}
 .nav .btn {
   margin-left: 6px;
 }
@@ -541,6 +546,10 @@ main,
   rotate: 4deg;
   scale: 1.08;
   z-index: 3;
+}
+/* let go somewhere it can't stay: it glides back to where it was picked up */
+.hero-sticker.back {
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), rotate 0.3s var(--ease), scale 0.3s var(--ease);
 }
 @keyframes bob {
   to {
@@ -874,6 +883,48 @@ main,
   }
 }
 
+/* ───────────── the magnet board: events and the next event hang on one framed board ───────────── */
+.board-dive::before {
+  content: "";
+  position: absolute;
+  inset: clamp(10px, 1.6vw, 22px);
+  z-index: -1;
+  border-radius: clamp(20px, 3vw, 40px);
+  /* a fine magnetic-steel grain inside a raised trim */
+  background:
+    radial-gradient(circle at 1px 1px, rgba(243, 239, 251, 0.07) 1px, transparent 1.4px) 0 0 / 22px 22px,
+    linear-gradient(180deg, #2f3263, #262955);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 0 0 clamp(6px, 0.8vw, 10px) #3a3e72,
+    inset 0 0 0 calc(clamp(6px, 0.8vw, 10px) + 1px) rgba(8, 5, 24, 0.45),
+    inset 0 18px 40px -12px rgba(8, 5, 24, 0.5);
+  pointer-events: none;
+}
+/* each print is held up by a magnet in a brand colour */
+.snap-print::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.75), transparent 45%), var(--magnet, var(--c3));
+  box-shadow: 0 2px 0 rgba(8, 5, 24, 0.35), 0 6px 8px -2px rgba(8, 5, 24, 0.5);
+}
+.snap:nth-child(4n + 1) {
+  --magnet: var(--c4);
+}
+.snap:nth-child(4n + 2) {
+  --magnet: var(--c1);
+}
+.snap:nth-child(4n + 3) {
+  --magnet: var(--c2);
+}
+
 /* ───────────── events: the sticker wall ───────────── */
 .events {
   position: relative;
@@ -929,7 +980,8 @@ main,
 }
 .is-board .snaps {
   position: absolute;
-  inset: 0;
+  /* clear of the board's trim; on the right, room for the last sticker's overhang once the wall reaches the window edge */
+  inset: 0 max(16px, 76px - (100vw - min(100vw, 1280px)) / 2) 0 16px;
   display: block;
   max-width: none;
 }
@@ -953,6 +1005,7 @@ main,
   -webkit-tap-highlight-color: transparent;
 }
 .snap-print {
+  position: relative;
   display: block;
   padding: 10px 10px 0;
   background: #fbfaf7;
@@ -1265,7 +1318,7 @@ main,
   background: #f5c542;
 }
 .mac-lights i:nth-child(3) {
-  background: #8b9cf2;
+  background: #3dc84f;
 }
 .mac-tabs {
   display: flex;
@@ -1358,11 +1411,6 @@ main,
     opacity: 0;
     scale: 0.3;
   }
-}
-.mac-unit {
-  margin-top: 10px;
-  font-size: 0.8rem;
-  color: var(--mute);
 }
 /* pinned: the stage holds while the gear zooms out of the dark and turns */
 .about.is-scrolly {
@@ -2096,20 +2144,6 @@ a.kc-face:focus-visible .kc-open {
 .geary-col {
   position: relative;
 }
-.geary-intro {
-  max-width: 34ch;
-  margin-inline: auto;
-  text-align: center;
-}
-.geary-intro h3 {
-  color: var(--ink);
-  font-size: 1.5rem;
-}
-.geary-intro p {
-  margin-top: 6px;
-  font-size: 0.9rem;
-  color: var(--text);
-}
 .geary {
   position: relative;
   height: min(72vh, 640px);
@@ -2117,7 +2151,7 @@ a.kc-face:focus-visible .kc-open {
 }
 .geary-canvas {
   position: absolute;
-  inset: 0 0 70px;
+  inset: 0;
   cursor: grab;
   touch-action: pan-y;
 }
@@ -2146,7 +2180,7 @@ a.kc-face:focus-visible .kc-open {
 .geary-floor {
   position: absolute;
   left: 50%;
-  bottom: 92px;
+  bottom: 22px;
   width: 50%;
   height: 46px;
   translate: -50% 0;
@@ -2171,23 +2205,18 @@ a.kc-face:focus-visible .kc-open {
   background: #fce8f2;
   border-color: var(--c3);
 }
-.geary-tools {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  translate: -50% 0;
-  display: flex;
-  gap: 8px;
-  align-items: center;
+/* what Geary says when poked, up by his head */
+.geary-say {
+  left: 60%;
+  top: 10%;
+  z-index: 2;
 }
 @media (max-width: 860px) {
   .join-grid {
     grid-template-columns: 1fr;
   }
-  .geary-intro {
-    margin-top: 40px;
-  }
   .geary {
+    margin-top: 24px;
     height: 500px;
     min-height: 0;
   }
@@ -2504,22 +2533,44 @@ a.kc-face:focus-visible .kc-open {
   gap: clamp(8px, 1.4vw, 14px);
   margin: 12px 0 36px;
 }
+/* the countdown is a row of chunky fridge magnets stuck to the board, one brand colour each */
 .cd-cell {
   display: grid;
   justify-items: center;
   min-width: clamp(68px, 9vw, 96px);
-  padding: 14px 10px 10px;
-  border-radius: 16px;
-  background: linear-gradient(160deg, rgba(139, 156, 242, 0.22), rgba(228, 64, 94, 0.18));
-  border: 1px solid rgba(243, 239, 251, 0.14);
 }
 .cd-cell b {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 14px 10px 12px;
+  border-radius: 16px;
+  background: radial-gradient(120% 80% at 30% 0%, rgba(255, 255, 255, 0.32), transparent 55%), var(--mag);
+  box-shadow: inset 0 -5px 0 rgba(8, 5, 24, 0.22), 0 3px 0 rgba(8, 5, 24, 0.3), 0 16px 20px -10px rgba(8, 5, 24, 0.7);
+  rotate: var(--lean);
   font: 700 clamp(2rem, 4vw, 3.2rem) / 1 var(--head);
   font-variant-numeric: tabular-nums;
   color: #fff;
+  text-shadow: 0 2px 0 rgba(8, 5, 24, 0.2);
+}
+.cd-cell:nth-child(1) {
+  --mag: #5f6fdc;
+  --lean: -3deg;
+}
+.cd-cell:nth-child(2) {
+  --mag: #8a58cf;
+  --lean: 2deg;
+}
+.cd-cell:nth-child(3) {
+  --mag: #bf418c;
+  --lean: -1.5deg;
+}
+.cd-cell:nth-child(4) {
+  --mag: #d23350;
+  --lean: 3deg;
 }
 .cd-cell span {
-  margin-top: 6px;
+  margin-top: 10px;
   font-size: 0.74rem;
   color: var(--on-ink-mute);
 }
@@ -2566,16 +2617,36 @@ a.kc-face:focus-visible .kc-open {
     rotate: 374deg;
   }
 }
+/* the schedule is a printed sheet held to the board by a magnet */
 .up-day {
-  background: rgba(243, 239, 251, 0.06);
-  border: 1px solid rgba(243, 239, 251, 0.12);
-  border-radius: 22px;
-  padding: 26px 26px 14px;
+  position: relative;
+  padding: 30px 28px 16px;
+  border-radius: 3px;
+  background: #fbfaf7;
+  color: var(--text);
+  rotate: 1.2deg;
+  box-shadow: 0 3px 4px rgba(8, 5, 24, 0.35), 0 30px 40px -18px rgba(8, 5, 24, 0.7);
+}
+.up-day + .up-day {
+  margin-top: 28px;
+  rotate: -1deg;
+}
+.up-day::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  width: 24px;
+  height: 24px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.75), transparent 45%), var(--c3);
+  box-shadow: 0 2px 0 rgba(8, 5, 24, 0.35), 0 6px 8px -2px rgba(8, 5, 24, 0.5);
 }
 .up-day h4 {
   margin: 0 0 12px;
   font: 700 1.1rem var(--head);
-  color: #fff;
+  color: var(--ink);
 }
 .up-day ol {
   list-style: none;
@@ -2587,11 +2658,11 @@ a.kc-face:focus-visible .kc-open {
   grid-template-columns: 84px 1fr;
   gap: 12px;
   padding: 11px 0;
-  border-top: 1px solid rgba(243, 239, 251, 0.1);
+  border-top: 1px solid rgba(29, 24, 56, 0.1);
   font-size: 0.95rem;
 }
 .up-day time {
-  color: var(--c1);
+  color: #4b58c4;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -2663,20 +2734,53 @@ a.kc-face:focus-visible .kc-open {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(16px, 2.2vw, 28px);
 }
+/* each offering is a sticky note, the same pads as Idea → Build → Ship: a photo taped on, the copy written under it */
 .offer-card {
-  overflow: hidden;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 4px rgba(29, 24, 56, 0.05), 0 30px 60px -34px rgba(29, 24, 56, 0.45);
+  --note: #fde3ef;
+  --tape: rgba(210, 95, 166, 0.28);
+  position: relative;
+  padding: 16px 16px 0;
+  border-radius: 2px 2px 4px 18px / 2px 2px 4px 10px; /* a lifted, curling corner bottom-left */
+  background: linear-gradient(180deg, rgba(29, 24, 56, 0.05), transparent 22px), var(--note);
+  box-shadow: 0 1px 1px rgba(29, 24, 56, 0.08), 0 24px 30px -20px rgba(29, 24, 56, 0.45);
+  rotate: -1.4deg;
+  transition: rotate 0.35s var(--ease), translate 0.35s var(--ease);
+}
+.offer-card:nth-child(2) {
+  --note: #e6e9fd;
+  --tape: rgba(139, 156, 242, 0.34);
+  rotate: 1.2deg;
+}
+.offer-card:nth-child(3) {
+  --note: #efe5fc;
+  --tape: rgba(169, 127, 220, 0.32);
+  rotate: -0.8deg;
+}
+.offer-card:hover {
+  rotate: 0deg;
+  translate: 0 -4px;
+}
+.offer-card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  z-index: 1;
+  width: 78px;
+  height: 22px;
+  translate: -50% 0;
+  rotate: -3deg;
+  background: var(--tape);
+  backdrop-filter: blur(1px);
 }
 .offer-card img {
   width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
+  border-radius: 2px;
 }
 .face-copy {
-  padding: 22px 24px 26px;
+  padding: 18px 8px 26px;
 }
 .offer-card h3 {
   font-size: clamp(1.15rem, 1.6vw, 1.35rem);
@@ -2801,6 +2905,36 @@ a.kc-face:focus-visible .kc-open {
 .geary-pop.peek .bubble {
   top: -30px;
 }
+/* Geary as a die-cut sticker: a white vinyl edge, lifted while held, and dragged anywhere on the page */
+.geary-sticker {
+  display: block;
+  width: var(--size);
+  cursor: grab;
+  touch-action: none;
+  translate: var(--x, 0px) var(--y, 0px);
+  rotate: var(--tilt);
+  transition: rotate 0.35s var(--ease), scale 0.35s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.geary-sticker img {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(0 10px 12px rgba(8, 5, 24, 0.35));
+}
+.geary-sticker:hover {
+  rotate: calc(var(--tilt) * 0.4);
+}
+.geary-sticker.held {
+  cursor: grabbing;
+  scale: 1.06;
+  rotate: 0deg;
+}
+.geary-sticker.held img {
+  filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(0 24px 22px rgba(8, 5, 24, 0.4));
+}
+
 /* the conveyor: boxes ride from idea to v1.0, then drop off into "shipped" */
 .ship {
   --w: 260px;
@@ -2946,9 +3080,10 @@ a.kc-face:focus-visible .kc-open {
   color: var(--c);
   animation: roam 18s ease-in-out infinite alternate;
 }
+/* PM drifts in the gutter between the gear and the headline, never over the words */
 .cursors span:nth-child(1) {
-  left: 44%;
-  top: 18%;
+  left: 30%;
+  top: 12%;
 }
 .cursors span:nth-child(2) {
   left: 70%;
@@ -2963,8 +3098,8 @@ a.kc-face:focus-visible .kc-open {
   animation-delay: -12s;
 }
 .cursors span:nth-child(4) {
-  left: 84%;
-  top: 34%;
+  left: 6%;
+  top: 86%;
   animation-duration: 20s;
   animation-delay: -16s;
 }

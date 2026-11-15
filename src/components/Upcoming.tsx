@@ -72,10 +72,10 @@ export default function Upcoming() {
           </div>
 
           <div className="ctas">
-            <a className="btn white" href={ev.href}>
+            <a className="btn white" href={ev.href} target="_blank" rel="noopener">
               Register for {ev.name.replace("Product ", "")} <Arrow />
             </a>
-            <a className="btn ghost" href={LINKS.member}>
+            <a className="btn ghost" href={LINKS.member} target="_blank" rel="noopener">
               Become a member
             </a>
           </div>

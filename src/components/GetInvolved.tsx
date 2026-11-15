@@ -82,7 +82,7 @@ export default function GetInvolved() {
           <ul className="tickets">
             {TICKETS.map((t, k) => (
               <li key={t.title} style={{ "--k": k } as React.CSSProperties}>
-                <a className="ticket" href={t.href}>
+                <a className="ticket" href={t.href} {...(t.href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>
                   <span className="ticket-main">
                     <small>{t.gate}</small>
                     <b>{t.title}</b>
@@ -100,11 +100,7 @@ export default function GetInvolved() {
         </div>
 
         <div className="geary-col">
-          <div className="geary-intro">
-            <h3>Meet Geary</h3>
-            <p>Our mascot and resident product manager. Geary’s eyes follow you; tap Geary to spin the gear.</p>
-          </div>
-          <GearyStage label="Geary, the PMC mascot, in 3D. Drag or use the arrow keys to turn Geary, plus and minus to zoom, Enter to spin the gear." />
+          <GearyStage label="Geary, the PMC mascot, in 3D. Drag or use the arrow keys to turn him any way, upside down too; plus and minus to zoom; Enter to say hi." />
         </div>
       </div>
     </section>

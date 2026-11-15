@@ -23,24 +23,60 @@ const STICKERS: { file: string; x: number; y: number; w: number; tilt: number }[
   { file: "conference", x: 0.34, y: 0.96, w: ROUND, tilt: 6 },
 ];
 
-/** A sticker to pick up and leave somewhere else. Purely a toy: the real ones, with links, are on the events wall. */
+/** Rects a sticker may not be left on: the words themselves (not their boxes' empty ends), the buttons, the stats, the pass, the nav. */
+function keepOut(stage: HTMLElement): DOMRect[] {
+  const rects: DOMRect[] = [];
+  const range = document.createRange();
+  stage.querySelectorAll(".hero-copy h1, .hero-lede").forEach((el) => {
+    range.selectNodeContents(el);
+    rects.push(...range.getClientRects());
+  });
+  stage.querySelectorAll(".hero-copy .ctas > *, .hero-stats li, .hero-next").forEach((el) => rects.push(el.getBoundingClientRect()));
+  const nav = document.querySelector(".nav");
+  if (nav) rects.push(nav.getBoundingClientRect());
+  return rects;
+}
+const overlaps = (a: DOMRect, b: DOMRect, pad = 6) =>
+  a.left < b.right + pad && a.right > b.left - pad && a.top < b.bottom + pad && a.bottom > b.top - pad;
+
+/**
+ * A sticker to pick up and leave somewhere else. Purely a toy: the real ones, with links, are on the events wall.
+ * Dropped on the copy or off the hero, it springs back to where it was picked up.
+ */
 function Sticker({ file, x, y, w, tilt }: (typeof STICKERS)[number]) {
-  const held = useRef<{ px: number; py: number } | null>(null);
+  const held = useRef<{ px: number; py: number; from: { x: number; y: number } } | null>(null);
   const at = useRef({ x: 0, y: 0 });
+  const place = (el: HTMLElement) => {
+    el.style.setProperty("--x", `${at.current.x}px`);
+    el.style.setProperty("--y", `${at.current.y}px`);
+  };
   const down = (e: React.PointerEvent<HTMLElement>) => {
-    held.current = { px: e.clientX - at.current.x, py: e.clientY - at.current.y };
+    held.current = { px: e.clientX - at.current.x, py: e.clientY - at.current.y, from: { ...at.current } };
     e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.classList.remove("back");
     e.currentTarget.classList.add("held");
   };
   const move = (e: React.PointerEvent<HTMLElement>) => {
     if (!held.current) return;
     at.current = { x: e.clientX - held.current.px, y: e.clientY - held.current.py };
-    e.currentTarget.style.setProperty("--x", `${at.current.x}px`);
-    e.currentTarget.style.setProperty("--y", `${at.current.y}px`);
+    place(e.currentTarget);
   };
   const up = (e: React.PointerEvent<HTMLElement>) => {
+    const h = held.current;
     held.current = null;
-    e.currentTarget.classList.remove("held");
+    const el = e.currentTarget;
+    el.classList.remove("held");
+    if (!h) return;
+    const stage = el.closest<HTMLElement>(".hero-stage");
+    if (!stage) return;
+    const r = (el.firstElementChild as HTMLElement).getBoundingClientRect();
+    const s = stage.getBoundingClientRect();
+    const outside = r.left < s.left || r.right > s.right || r.top < s.top || r.bottom > s.bottom;
+    if (outside || keepOut(stage).some((k) => overlaps(r, k))) {
+      at.current = h.from;
+      el.classList.add("back");
+      place(el);
+    }
   };
   return (
     <span
@@ -132,7 +168,7 @@ export default function Hero() {
           world: worldRef.current!,
           copy: copyRef.current!,
           toys: toysRef.current!,
-          onSpin: () => setLine((n) => n + 1),
+          onPoke: () => setLine((n) => n + 1),
         });
       })
       .catch(() => sectionRef.current?.classList.add("no-3d")); // no WebGL, or the script failed: a still hero, no dive
@@ -151,15 +187,15 @@ export default function Hero() {
           ref={canvasHost}
           tabIndex={0}
           role="img"
-          aria-label="Geary, the PMC mascot, in 3D among floating brand gears. Drag or use the arrow keys to turn Geary; press Enter to spin the gear."
+          aria-label="Geary, the PMC mascot, in 3D among floating brand gears. Drag or use the arrow keys to turn Geary any way you like, upside down too; press Enter to say hi."
         />
-        <img className="hero-still" src={asset("/scenery/geary-happy.webp")} alt="" width="426" height="440" />
+        <img className="hero-still" src={asset("/scenery/geary.webp")} alt="" width="427" height="440" />
         <div className="hero-toys" ref={toysRef}>
           {STICKERS.map((s) => (
             <Sticker key={s.file} {...s} />
           ))}
-          <button type="button" className="hero-say" onClick={() => scene.current?.spin()}>
-            <span key={line}>{line ? GEARY_LINES[(line - 1) % GEARY_LINES.length] : "Hi, I’m Geary! Spin me."}</span>
+          <button type="button" className="hero-say" onClick={() => scene.current?.poke()}>
+            <span key={line}>{line ? GEARY_LINES[(line - 1) % GEARY_LINES.length] : "Hi, I’m Geary! Flip me over."}</span>
           </button>
         </div>
         <div className="wrap hero-copy" ref={copyRef}>
@@ -168,10 +204,10 @@ export default function Hero() {
           </h1>
           <p className="hero-lede">Events, mentorship and industry connections for students curious about product.</p>
           <div className="ctas">
-            <a className="btn primary" href={LINKS.member}>
+            <a className="btn primary" href={LINKS.member} target="_blank" rel="noopener">
               Become a member <Arrow />
             </a>
-            <a className="btn secondary" href={LINKS.volunteer}>
+            <a className="btn secondary" href={LINKS.volunteer} target="_blank" rel="noopener">
               Volunteer with us
             </a>
           </div>

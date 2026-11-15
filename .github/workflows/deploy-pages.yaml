@@ -1,10 +1,11 @@
 name: Deploy ubcpmc.com (prod + staging)
 
 # Two branches, one Pages site:
-#   staging → https://ubcpmc.com/staging/   push here to try changes
-#   main    → https://ubcpmc.com            prod; only changes by merging a pull request from staging
-# A repo has a single Pages site, so every deploy builds both branches into it: main at the root, staging under
-# /staging (hidden from search engines). Pushing either branch republishes both, so they never drift apart.
+#   staging → https://ubcpmc.com/<secret path>/   push here to try changes
+#   main    → https://ubcpmc.com                  prod; only changes by merging a pull request from staging
+# A repo has a single Pages site, so every deploy builds both branches into it: main at the root, staging under a
+# random path kept in the STAGING_PATH secret, so it can't be found from this public repo, and marked noindex.
+# Pushing either branch republishes both, so they never drift apart. To move staging, change the secret.
 # One-time setup: Settings → Pages → Source "GitHub Actions"; Settings → Environments → github-pages allows the
 # main and staging branches to deploy.
 on:
@@ -65,25 +66,27 @@ jobs:
         run: npm ci && npm run build
         env:
           NEXT_OUTPUT: export
-          NEXT_PUBLIC_BASE_PATH: /staging
+          NEXT_PUBLIC_BASE_PATH: /${{ secrets.STAGING_PATH }}
 
       # Catch a build whose images or Geary model would 404 under its base path before it goes live
       - name: Check asset paths
+        env:
+          STAGING_PATH: ${{ secrets.STAGING_PATH }}
         run: |
           set -e
-          for site in "prod:" "staging:/staging"; do
+          test -n "$STAGING_PATH" || { echo "Set the STAGING_PATH secret"; exit 1; }
+          for site in "prod:" "staging:/$STAGING_PATH"; do
             dir=${site%%:*}; base=${site#*:}
             test -f $dir/out/models/geary.glb
             # images and the Geary model share asset(), so a prefixed <img> means the model URL is prefixed too
-            grep -q "src=\"$base/brand/pmc-logo" $dir/out/index.html || { echo "$dir: asset URLs are missing the '$base' prefix"; exit 1; }
+            grep -q "src=\"$base/brand/pmc-logo" $dir/out/index.html || { echo "$dir: asset URLs are missing their base path"; exit 1; }
           done
 
-      - name: Put staging under /staging
-        run: |
-          set -e
-          cp -R staging/out prod/out/staging
-          # keep staging out of search results, so it never competes with prod
-          printf 'User-agent: *\nDisallow: /staging/\n' > prod/out/robots.txt
+      # no robots.txt entry for staging: it would publish the path. Its pages carry noindex instead.
+      - name: Put staging under its secret path
+        env:
+          STAGING_PATH: ${{ secrets.STAGING_PATH }}
+        run: cp -R staging/out "prod/out/$STAGING_PATH"
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
