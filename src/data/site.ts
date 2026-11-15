@@ -23,14 +23,11 @@ export type EventSticker = {
   poster?: string;
 };
 
-/** The old Framer site, kept on Framer's free plan so old links to past event pages still work. */
-export const FRAMER = "https://common-way-633109.framer.app";
-
 /** Each event lives in its own repo; stickers only link out. Newest first: keep a new event at the top. */
 export const EVENTS: EventSticker[] = [
   { id: "jackpot", name: "Product Jackpot", when: "Nov 21–22, 2026", blurb: "24-hour product challenge", href: "https://ubcpmc.com/productjackpot", poster: asset("/events/jackpot.webp") },
   { id: "getaway", name: "Product Getaway", when: "Sep 2026", blurb: "See the recap on Instagram", href: "https://www.instagram.com/p/DeXKIRkJpRi/", poster: asset("/events/getaway.webp") },
-  // Past events open their Instagram recap; their old pages stay on Framer (FRAMER) for old links.
+  // Past events open their Instagram recap; old ubcpmc.com links to their pages do too (not-found.tsx).
   { id: "sprint", name: "Product Sprint", when: "Mar 2026", blurb: "Our flagship two-week PM competition", href: "https://www.instagram.com/p/DWkWGMXGtL9/", poster: img("mg8wks2Uk8WpPri365cVxWetC8.png", 640) },
   { id: "conference", name: "Product Conference", when: "Feb 2026", blurb: "Keynotes, workshops and panels", href: "https://www.instagram.com/p/DUUhYGNjrqM/", poster: img("YOTBvfm9wMwuyEbB9JVEWFAMHQ.png", 640) },
   { id: "heist", name: "Product Heist", when: "Nov 2025", blurb: "A 24-hour product challenge", href: "https://www.instagram.com/reel/DSRC0m7CarN/", poster: img("B0rBpxxJg0VYM53n9iPYj0JrLEc.jpg", 640) },
