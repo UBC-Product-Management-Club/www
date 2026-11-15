@@ -63,13 +63,13 @@ export type HeroParts = {
   world: HTMLElement;
   copy: HTMLElement;
   toys: HTMLElement;
-  onSpin: () => void;
+  onPoke: () => void;
 };
 
-export type HeroScene = { spin: () => void; dispose: () => void };
+export type HeroScene = { poke: () => void; dispose: () => void };
 
 /** The hero's 3D stage and the scroll dive. Lives apart from the component so three.js loads after the first paint. */
-export function createHeroScene({ section, stage: pin, host, portal, world, copy, toys, onSpin }: HeroParts): HeroScene {
+export function createHeroScene({ section, stage: pin, host, portal, world, copy, toys, onPoke }: HeroParts): HeroScene {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -87,13 +87,15 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
   const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 60);
-  const key = new THREE.DirectionalLight("#ffffff", 2.1);
-  key.position.set(2, 3, 4);
-  const rimL = new THREE.PointLight("#8b9cf2", 30, 12);
-  rimL.position.set(-2.6, 1, -1);
-  const rimR = new THREE.PointLight("#e4405e", 24, 12);
-  rimR.position.set(2.6, -0.4, -1);
-  scene.add(key, rimL, rimR, new THREE.HemisphereLight("#fbf9fe", "#a97fdc", 0.7));
+  // one clear light source: a white key from the upper left, a soft white fill, and a faint cool rim. No coloured
+  // lights from behind, which washed Geary pink on some turns and not others
+  const key = new THREE.DirectionalLight("#ffffff", 2.3);
+  key.position.set(-2, 3, 4);
+  const fill = new THREE.DirectionalLight("#f3effb", 0.7);
+  fill.position.set(3, 0.5, 2);
+  const rim = new THREE.DirectionalLight("#c9cff8", 0.6);
+  rim.position.set(0, 2, -4);
+  scene.add(key, key.target, fill, rim, new THREE.HemisphereLight("#fbf9fe", "#d9d4ea", 0.6));
 
   // the brand gears drifting around Geary
   const gearMat = new THREE.MeshPhysicalMaterial({
@@ -128,7 +130,7 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
   const size = { w: 2, h: 2.6, cy: 0 }; // Geary's size and centre height in world units, measured once the model loads
   let alive = true;
   let bornAt = -1;
-  loadGeary({ reduce }).then(
+  loadGeary().then(
     (r) => {
       if (!alive) return r.dispose();
       rig = r;
@@ -146,9 +148,21 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
     () => (host.dataset.status = "error"),
   );
 
-  // ── input: drag to turn Geary, tap to spin the gear, the eyes follow the pointer everywhere
-  const view = { yaw: -0.3, vyaw: 0 };
-  let drag: { x: number; moved: number } | null = null;
+  // ── input: drag to tumble Geary any way (upside down too), tap to poke him, the eyes follow the pointer everywhere
+  const HOME = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -0.3, 0));
+  const AXIS_Y = new THREE.Vector3(0, 1, 0);
+  const IDENTITY = new THREE.Quaternion();
+  const orient = HOME.clone(); // Geary's turn, as the visitor left it
+  const vel = new THREE.Vector3(); // angular velocity: axis × radians per frame, carried on after a flick
+  const dq = new THREE.Quaternion();
+  const axis = new THREE.Vector3();
+  const homeNow = new THREE.Quaternion();
+  const tumble = (v: THREE.Vector3) => {
+    const a = v.length();
+    if (a < 1e-6) return;
+    orient.premultiply(dq.setFromAxisAngle(axis.copy(v).divideScalar(a), a));
+  };
+  let drag: { x: number; y: number; moved: number } | null = null;
   let idleAt = performance.now();
   let hop = 0;
   const pointer = new THREE.Vector2(0, 0);
@@ -156,27 +170,29 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
   let pointerSeen = 0;
   const el = renderer.domElement;
 
-  const spin = () => {
-    rig?.spin();
+  const poke = () => {
+    rig?.poke();
     hop = 1;
-    onSpin();
+    onPoke();
   };
   const down = (e: PointerEvent) => {
-    drag = { x: e.clientX, moved: 0 };
+    drag = { x: e.clientX, y: e.clientY, moved: 0 };
     el.setPointerCapture(e.pointerId);
     host.classList.add("grabbing");
   };
   const move = (e: PointerEvent) => {
     if (!drag) return;
-    const dx = e.clientX - drag.x;
-    drag.moved += Math.abs(dx);
-    view.yaw += dx * 0.009;
-    view.vyaw = dx * 0.009;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag.moved += Math.abs(dx) + Math.abs(dy);
+    // a trackball: the drag direction turns him about the axis across it, in screen space
+    vel.set(dy, dx, 0).multiplyScalar(0.009);
+    tumble(vel);
     drag.x = e.clientX;
+    drag.y = e.clientY;
     idleAt = performance.now();
   };
   const up = (e: PointerEvent) => {
-    if (drag && drag.moved < 6 && e.type === "pointerup") spin();
+    if (drag && drag.moved < 6 && e.type === "pointerup") poke();
     drag = null;
     host.classList.remove("grabbing");
     idleAt = performance.now();
@@ -187,9 +203,11 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
     pointerSeen = performance.now();
   };
   const keydown = (e: KeyboardEvent) => {
-    if (e.key === "ArrowLeft") view.vyaw -= 0.08;
-    else if (e.key === "ArrowRight") view.vyaw += 0.08;
-    else if (e.key === "Enter" || e.key === " ") spin();
+    if (e.key === "ArrowLeft") vel.y -= 0.08;
+    else if (e.key === "ArrowRight") vel.y += 0.08;
+    else if (e.key === "ArrowUp") vel.x -= 0.08;
+    else if (e.key === "ArrowDown") vel.x += 0.08;
+    else if (e.key === "Enter" || e.key === " ") poke();
     else return;
     e.preventDefault();
     idleAt = performance.now();
@@ -305,16 +323,13 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
     floatGroup.scale.setScalar(standing);
 
     if (!drag) {
-      view.yaw += view.vyaw;
-      view.vyaw *= 0.94;
-      if (now - idleAt > 3500) {
-        const home = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2 + (reduce ? 0 : Math.sin(now / 2600) * 0.28);
-        view.yaw += (home - view.yaw) * 0.02;
-      }
+      tumble(vel);
+      vel.multiplyScalar(0.94);
+      // left alone a while, he rights himself and sways gently
+      if (now - idleAt > 3500) orient.slerp(homeNow.setFromAxisAngle(AXIS_Y, -0.3 + (reduce ? 0 : Math.sin(now / 2600) * 0.28)), 0.03);
     }
     // face the camera squarely before the dive
-    const faceOn = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2;
-    turn.rotation.y = THREE.MathUtils.lerp(view.yaw, faceOn, centre);
+    turn.quaternion.copy(orient).slerp(IDENTITY, centre);
     hop = Math.max(0, hop - dt * 1.8);
     body.position.y = (reduce ? 0 : Math.sin(now / 900) * 0.035) * (1 - dive) + Math.sin(hop * Math.PI) * 0.22;
 
@@ -334,7 +349,6 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
     // camera: a slow push, then an exponential dive into Geary's left eye
     const camZ = wide ? CAM_Z.wide : CAM_Z.phone;
     if (rig) {
-      rig.state.base = reduce ? 0 : 0.35 + dive * 5;
       rig.state.blink = dive < 0.05;
       scene.updateMatrixWorld();
       const eye = rig.eyes[0];
@@ -405,7 +419,7 @@ export function createHeroScene({ section, stage: pin, host, portal, world, copy
   raf = requestAnimationFrame(frame);
 
   return {
-    spin,
+    poke,
     dispose() {
       alive = false;
       cancelAnimationFrame(raf);

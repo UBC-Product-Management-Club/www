@@ -132,7 +132,7 @@ export const OFFER = [
   {
     title: "Practical Exposure",
     body: "Engage in activities that challenge you to solve actual problems and apply theoretical knowledge in practical settings. Our hands-on exposure will help you understand the nuances of PM and build a strong foundation.",
-    photo: { src: img("VaLY6KAJeCVompZ6IHBvwXnerU.jpeg"), alt: "Students at a PMC event" },
+    photo: { src: asset("/offer/practical-exposure.webp"), alt: "Students working in teams on laptops at a PMC workshop, a mentor leaning in to help" },
   },
   {
     title: "Product Skills Enhancement",

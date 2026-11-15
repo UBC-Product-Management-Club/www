@@ -7,7 +7,7 @@ import Team from "@/components/Team";
 import Advisors from "@/components/Advisors";
 import GetInvolved from "@/components/GetInvolved";
 import Nav from "@/components/Nav";
-import { Edge, EasterEggs, GearTrain, GearyPop, ShipIt } from "@/components/Playthings";
+import { Edge, EasterEggs, GearTrain, GearyPop, GearySticker, ShipIt } from "@/components/Playthings";
 import { Footer } from "@/components/Chrome";
 import ScrollCue from "@/components/ScrollCue";
 import { asset } from "@/lib/asset";
@@ -27,7 +27,7 @@ export default function Home() {
           <Upcoming />
         </div>
         <Edge>
-          <GearyPop src={asset("/scenery/geary-smirk.webp")} place={{ side: "left", at: 6, lift: -44 }} size={170} />
+          <GearySticker src={asset("/scenery/geary-smirk.webp")} place={{ side: "left", at: 6, lift: -44 }} size={150} />
         </Edge>
         <About />
         <Edge>
@@ -35,7 +35,7 @@ export default function Home() {
         </Edge>
         <Offer />
         <Edge behind>
-          <GearyPop src={asset("/scenery/geary-happy.webp")} place={{ side: "left", at: 9, lift: -6 }} size={190} peek start={1} />
+          <GearyPop src={asset("/scenery/geary.webp")} place={{ side: "left", at: 9, lift: -6 }} size={180} peek start={1} />
         </Edge>
         <Edge>
           <GearTrain place={{ side: "right", at: 3, lift: -10 }} gears={[{ teeth: 14 }, { teeth: 9, angle: -25 }]} />

@@ -4,16 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { loadGeary, type GearyRig } from "@/lib/geary";
-import { Minus, Plus, Reset } from "./icons";
+import { GEARY_LINES } from "./Playthings";
 
 const DIST = { min: 2.1, max: 6.2, start: 4.4 };
 
-export type GearyApi = { zoom: (f: number) => void; reset: () => void; spin: () => void };
-
+/** An easter egg: no title, no buttons. Drag to tumble Geary any way, pinch or ctrl+scroll to zoom, tap him to hear from him. */
 export default function GearyStage({ label }: { label: string }) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const api = useRef<GearyApi | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [said, setSaid] = useState<string | null>(null);
 
   useEffect(() => {
     const host = hostRef.current!;
@@ -35,22 +34,23 @@ export default function GearyStage({ label }: { label: string }) {
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
 
-    const key = new THREE.DirectionalLight("#ffffff", 2.1);
-    key.position.set(2, 3, 4);
-    const rimL = new THREE.PointLight("#8b9cf2", 26, 10);
-    rimL.position.set(-2.4, 1, -1);
-    const rimR = new THREE.PointLight("#e4405e", 22, 10);
-    rimR.position.set(2.4, -0.4, -1);
-    scene.add(key, rimL, rimR, new THREE.HemisphereLight("#fbf9fe", "#a97fdc", 0.7));
+    // the same light as the hero: one white key from the upper left, a soft fill, a faint cool rim
+    const key = new THREE.DirectionalLight("#ffffff", 2.3);
+    key.position.set(-2, 3, 4);
+    const fill = new THREE.DirectionalLight("#f3effb", 0.7);
+    fill.position.set(3, 0.5, 2);
+    const rim = new THREE.DirectionalLight("#c9cff8", 0.6);
+    rim.position.set(0, 2, -4);
+    scene.add(key, fill, rim, new THREE.HemisphereLight("#fbf9fe", "#d9d4ea", 0.6));
 
-    const stage = new THREE.Group(); // user yaw/pitch
+    const stage = new THREE.Group(); // the visitor's tumble
     const body = new THREE.Group(); // bob, hop and lean
     stage.add(body);
     scene.add(stage);
 
     let rig: GearyRig | null = null;
     let alive = true;
-    loadGeary({ reduce }).then(
+    loadGeary().then(
       (r) => {
         if (!alive) return r.dispose();
         rig = r;
@@ -60,8 +60,20 @@ export default function GearyStage({ label }: { label: string }) {
       () => alive && setStatus("error"),
     );
 
-    // ── input: drag to turn, tap to spin the gear, pinch / ctrl+wheel / buttons to zoom
-    const view = { yaw: -0.35, pitch: 0.05, vyaw: 0, dist: DIST.start, targetDist: DIST.start };
+    // ── input: drag to tumble (a trackball, so he goes upside down too), tap to poke, pinch / ctrl+wheel to zoom
+    const view = { dist: DIST.start, targetDist: DIST.start };
+    const HOME = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.05, -0.35, 0));
+    const AXIS = new THREE.Vector3();
+    const homeNow = new THREE.Quaternion();
+    const swayEuler = new THREE.Euler();
+    const dq = new THREE.Quaternion();
+    const vel = new THREE.Vector3();
+    stage.quaternion.copy(HOME);
+    const tumble = (v: THREE.Vector3) => {
+      const a = v.length();
+      if (a < 1e-6) return;
+      stage.quaternion.premultiply(dq.setFromAxisAngle(AXIS.copy(v).divideScalar(a), a));
+    };
     const pointerNdc = new THREE.Vector2(0, 0.1);
     let pointerSeen = 0;
     let drag: { x: number; y: number; moved: number } | null = null;
@@ -71,9 +83,13 @@ export default function GearyStage({ label }: { label: string }) {
     let pinch0 = 0;
     const el = renderer.domElement;
 
-    const spin = () => {
-      rig?.spin();
+    let line = 2, sayTimer = 0;
+    const poke = () => {
+      rig?.poke();
       hop = 1;
+      setSaid(GEARY_LINES[line++ % GEARY_LINES.length]);
+      window.clearTimeout(sayTimer);
+      sayTimer = window.setTimeout(() => setSaid(null), 2600);
     };
 
     const down = (e: PointerEvent) => {
@@ -100,9 +116,8 @@ export default function GearyStage({ label }: { label: string }) {
       if (!drag) return;
       const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
       drag.moved += Math.abs(dx) + Math.abs(dy);
-      view.yaw += dx * 0.009;
-      view.vyaw = dx * 0.009;
-      view.pitch = THREE.MathUtils.clamp(view.pitch + dy * 0.006, -0.6, 0.7);
+      vel.set(dy, dx, 0).multiplyScalar(0.009);
+      tumble(vel);
       drag.x = e.clientX;
       drag.y = e.clientY;
       idleAt = performance.now();
@@ -110,7 +125,7 @@ export default function GearyStage({ label }: { label: string }) {
     const up = (e: PointerEvent) => {
       pointers.delete(e.pointerId);
       if (pointers.size === 0) {
-        if (drag && drag.moved < 6 && e.type === "pointerup") spin();
+        if (drag && drag.moved < 6 && e.type === "pointerup") poke();
         drag = null;
         host.classList.remove("grabbing");
       }
@@ -122,6 +137,7 @@ export default function GearyStage({ label }: { label: string }) {
       pointerNdc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       pointerSeen = performance.now();
     };
+    const zoom = (f: number) => (view.targetDist = THREE.MathUtils.clamp(view.targetDist * f, DIST.min, DIST.max));
     const wheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return; // plain wheel keeps scrolling the page
       e.preventDefault();
@@ -131,11 +147,13 @@ export default function GearyStage({ label }: { label: string }) {
       view.targetDist = view.targetDist > (DIST.min + DIST.max) / 2 ? DIST.min + 0.2 : DIST.start;
     };
     const keydown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") view.vyaw -= 0.08;
-      else if (e.key === "ArrowRight") view.vyaw += 0.08;
-      else if (e.key === "+" || e.key === "=") api.current?.zoom(0.8);
-      else if (e.key === "-") api.current?.zoom(1.25);
-      else if (e.key === "Enter" || e.key === " ") spin();
+      if (e.key === "ArrowLeft") vel.y -= 0.08;
+      else if (e.key === "ArrowRight") vel.y += 0.08;
+      else if (e.key === "ArrowUp") vel.x -= 0.08;
+      else if (e.key === "ArrowDown") vel.x += 0.08;
+      else if (e.key === "+" || e.key === "=") zoom(0.8);
+      else if (e.key === "-") zoom(1.25);
+      else if (e.key === "Enter" || e.key === " ") poke();
       else return;
       e.preventDefault();
       idleAt = performance.now();
@@ -149,16 +167,6 @@ export default function GearyStage({ label }: { label: string }) {
     host.addEventListener("keydown", keydown);
     window.addEventListener("pointermove", look, { passive: true });
 
-    api.current = {
-      zoom: (f) => (view.targetDist = THREE.MathUtils.clamp(view.targetDist * f, DIST.min, DIST.max)),
-      reset: () => {
-        view.targetDist = DIST.start;
-        view.pitch = 0.05;
-        view.yaw = -0.35;
-        view.vyaw = 0;
-      },
-      spin,
-    };
 
     const resize = () => {
       const w = host.clientWidth, h = host.clientHeight;
@@ -185,16 +193,15 @@ export default function GearyStage({ label }: { label: string }) {
       if (!visible || document.hidden) return;
 
       if (!drag) {
-        view.yaw += view.vyaw;
-        view.vyaw *= 0.94;
-        // ease back to facing the visitor after a while, then sway gently
+        tumble(vel);
+        vel.multiplyScalar(0.94);
+        // he rights himself after a while, then sways gently
         if (now - idleAt > 4000) {
-          const home = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2 + (reduce ? 0 : Math.sin(now / 2400) * 0.35);
-          view.yaw += (home - view.yaw) * 0.02;
+          homeNow.setFromEuler(swayEuler.set(0.05, -0.35 + (reduce ? 0 : Math.sin(now / 2400) * 0.35), 0));
+          stage.quaternion.slerp(homeNow, 0.03);
         }
       }
       view.dist += (view.targetDist - view.dist) * 0.12;
-      stage.rotation.set(view.pitch, view.yaw, 0);
 
       hop = Math.max(0, hop - dt * 1.8);
       body.position.y = (reduce ? 0 : Math.sin(now / 900) * 0.035) + Math.sin(hop * Math.PI) * 0.22;
@@ -218,6 +225,7 @@ export default function GearyStage({ label }: { label: string }) {
 
     return () => {
       cancelAnimationFrame(raf);
+      window.clearTimeout(sayTimer);
       ro.disconnect();
       io.disconnect();
       host.removeEventListener("keydown", keydown);
@@ -228,7 +236,6 @@ export default function GearyStage({ label }: { label: string }) {
       renderer.dispose();
       pmrem.dispose();
       el.remove();
-      api.current = null;
     };
   }, []);
 
@@ -241,20 +248,9 @@ export default function GearyStage({ label }: { label: string }) {
           {status === "loading" ? "Geary is getting ready…" : "Geary couldn’t load. Refresh to try again."}
         </p>
       )}
-      <div className="geary-tools">
-        <button className="btn white sm" onClick={() => api.current?.spin()}>
-          Spin the gear
-        </button>
-        <button className="icon-btn glass" aria-label="Zoom in" onClick={() => api.current?.zoom(0.78)}>
-          <Plus />
-        </button>
-        <button className="icon-btn glass" aria-label="Zoom out" onClick={() => api.current?.zoom(1.28)}>
-          <Minus />
-        </button>
-        <button className="icon-btn glass" aria-label="Reset view" onClick={() => api.current?.reset()}>
-          <Reset />
-        </button>
-      </div>
+      <p className={`bubble geary-say${said ? " on" : ""}`} role="status">
+        {said}
+      </p>
     </div>
   );
 }

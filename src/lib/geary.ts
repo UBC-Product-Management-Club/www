@@ -48,7 +48,7 @@ function bake(root: THREE.Object3D): Map<string, THREE.Mesh> {
   return parts;
 }
 
-/** Move a mesh into a pivot group at its own centre (in the X/Z face plane), so it can spin, blink or glance. */
+/** Move a mesh into a pivot group at its own centre (in the X/Z face plane), so it can blink or glance. */
 function pivotAt(mesh: THREE.Mesh, parent: THREE.Object3D) {
   mesh.geometry.computeBoundingBox();
   const c = mesh.geometry.boundingBox!.getCenter(new THREE.Vector3());
@@ -69,9 +69,9 @@ export type GearyRig = {
   gear: THREE.Group;
   eyes: GearyEye[];
   state: { base: number; v: number; angle: number; squint: number; blink: boolean };
-  /** Spin the gear head faster for a moment (and squint). */
-  spin(boost?: number): void;
-  /** Turn the gear, blink, and glance toward a world-space point (null: let the eyes wander). */
+  /** A poke: Geary squints happily. The gear head never turns on its own (his suit couldn't turn with it). */
+  poke(): void;
+  /** Blink, and glance toward a world-space point (null: let the eyes wander). */
   update(dt: number, now: number, look: THREE.Vector3 | null): void;
   dispose(): void;
 };
@@ -80,7 +80,7 @@ let buffer: Promise<ArrayBuffer> | null = null;
 /** One download per page, however many Gearys are on it. */
 const fetchModel = () => (buffer ??= fetch(asset("/models/geary.glb")).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status))));
 
-export async function loadGeary({ reduce = false } = {}): Promise<GearyRig> {
+export async function loadGeary(): Promise<GearyRig> {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const gltf = await loader.parseAsync((await fetchModel()).slice(0), asset("/models/"));
@@ -123,7 +123,7 @@ export async function loadGeary({ reduce = false } = {}): Promise<GearyRig> {
   norm.add(model);
   root.add(norm);
 
-  const state = { base: reduce ? 0 : 0.35, v: reduce ? 0 : 0.35, angle: 0, squint: 0, blink: true };
+  const state = { base: 0, v: 0, angle: 0, squint: 0, blink: true };
   const local = new THREE.Vector3();
   let nextBlink = performance.now() + 2500, blinkAt = -1;
 
@@ -133,8 +133,7 @@ export async function loadGeary({ reduce = false } = {}): Promise<GearyRig> {
     gear: g.pivot,
     eyes,
     state,
-    spin(boost = 14) {
-      state.v += boost;
+    poke() {
       state.squint = 1;
     },
     update(dt, now, look) {

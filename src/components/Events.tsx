@@ -17,8 +17,8 @@ const SPOTS: Record<EventSticker["id"], [number, number, number]> = {
   night: [84, 50, 5],
 };
 
-/** Rounder stickers need a deeper fold before their edge reaches the corner. */
-const PEEL: Partial<Record<EventSticker["id"], number>> = { jackpot: 0.5, conference: 0.5, night: 0.4 };
+/** Rounder stickers need a deeper fold before their edge reaches the corner (Night's oval only meets it at 0.49). */
+const PEEL: Partial<Record<EventSticker["id"], number>> = { jackpot: 0.5, conference: 0.5, night: 0.7 };
 
 let topZ = 10;
 
@@ -128,7 +128,7 @@ function Snap({ ev, board, z }: { ev: EventSticker; board: boolean; z: number })
   };
 
   return ev.href ? (
-    <a {...common} ref={ref as React.Ref<HTMLAnchorElement>} href={ev.href} aria-label={`${ev.name}, ${ev.when}: ${ev.blurb}. ${ev.id === "getaway" ? "Open the recap on Instagram" : "Open the event page"}`} draggable={false} {...(ev.href.startsWith("http") && !ev.href.includes("ubcpmc.com") ? { target: "_blank", rel: "noopener" } : {})}>
+    <a {...common} ref={ref as React.Ref<HTMLAnchorElement>} href={ev.href} aria-label={`${ev.name}, ${ev.when}: ${ev.blurb}. ${ev.id === "getaway" ? "Open the recap on Instagram" : "Open the event page"} (opens in a new tab)`} draggable={false} {...(ev.href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>
       {body}
     </a>
   ) : (

@@ -14,7 +14,33 @@ const ITEMS = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const [here, setHere] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
+
+  // scroll-spy: the link for the section under the top third of the screen lights up; sections between
+  // two nav targets (What we offer, Advisors) belong to the one above them
+  useEffect(() => {
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const line = window.innerHeight * 0.34;
+      let on: string | null = null;
+      for (const [href] of ITEMS) {
+        const el = document.querySelector(href);
+        if (el && el.getBoundingClientRect().top <= line) on = href;
+      }
+      setHere(on);
+    };
+    const onScroll = () => (raf ||= requestAnimationFrame(check));
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -36,12 +62,21 @@ export default function Nav() {
       </a>
       <div className="nav-links" id="nav-links">
         {ITEMS.map(([href, label]) => (
-          <a key={href} className="l" href={href} onClick={() => setOpen(false)}>
+          <a
+            key={href}
+            className="l"
+            href={href}
+            aria-current={here === href ? "location" : undefined}
+            onClick={() => {
+              setOpen(false);
+              setHere(href);
+            }}
+          >
             {label}
           </a>
         ))}
       </div>
-      <a className="btn primary sm" href={LINKS.member}>
+      <a className="btn primary sm" href={LINKS.member} target="_blank" rel="noopener">
         Portal
       </a>
       <button

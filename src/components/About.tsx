@@ -7,11 +7,11 @@ import { range, sectionProgress, useMedia } from "@/lib/motion";
 import { Cursors } from "./Playthings";
 
 const GEAR_D = gearPath(500, 500, 496);
-/** Each stat as a tab: its window title, and what one dot in its grid stands for. */
+/** Each stat as a tab: its window title, and how many it takes to make one dot in its grid (the dots are texture, not a chart key). */
 const TABS = [
-  { tab: "Students", slug: "students", per: 10, unit: "Each dot is 10 students." },
-  { tab: "Events", slug: "events", per: 1, unit: "Each tile is one event." },
-  { tab: "Members", slug: "members", per: 1, unit: "Each dot is one member." },
+  { tab: "Students", slug: "students", per: 10 },
+  { tab: "Events", slug: "events", per: 1 },
+  { tab: "Members", slug: "members", per: 1 },
 ];
 const RAMP = ["#8b9cf2", "#a97fdc", "#d25fa6", "#e4405e"];
 /** Progress where the stat steps start and end. */
@@ -177,7 +177,6 @@ export default function About() {
                   <i key={`${active}-${i}`} style={{ background: RAMP[Math.floor((i / n) * RAMP.length)], animationDelay: `${i * 8}ms` }} />
                 ))}
               </div>
-              <p className="mac-unit">{tab.unit}</p>
             </div>
           </div>
         </div>
