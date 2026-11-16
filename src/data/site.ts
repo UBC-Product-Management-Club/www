@@ -173,7 +173,7 @@ export const BOARD: Advisor[] = [
   {
     name: "Timothy Yeung",
     badge: "Inaugural Chair",
-    title: "Sr. Director of Product Management, AI @ Uberall",
+    title: "Director of Product Management @ Magnet Forensics",
     photo: "Bd8oSWvydvHHXFdp4ulYhRlSrkQ.png",
     linkedin: "https://www.linkedin.com/in/yeungtimothy/",
     bio: "A product leader with over 13 years in tech, Timothy has led PM teams across core social media management, product growth and mobile at Hootsuite. He is Lead Instructor of Product Management & AI for Business at UBC Sauder CBS, received its Student Impact Award, is a past President of ProductBC, and serves as a Vancouver Director of APM Canada and a board member of AI Governance & Safety Canada.",
