@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import { asset, BASE } from "@/lib/asset";
+import { CursorTrail } from "@/components/CursorTrail";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         {children}
+        <CursorTrail />
       </body>
     </html>
   );
